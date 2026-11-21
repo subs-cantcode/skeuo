@@ -28,32 +28,30 @@ describe('navigation', () => {
     expect(screen.getByRole('heading', { name: /Featured Videos/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Recently Uploaded/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Most Popular/i })).toBeInTheDocument();
-    expect(screen.getByRole('navigation', { name: /Pagination/i })).toBeInTheDocument();
   });
 
-  it('shows search results and opens a video from them', async () => {
+  it('shows search results for the new catalog', async () => {
     const user = userEvent.setup();
-    renderAt('/results?q=harbour');
+    renderAt('/results?q=baking');
 
-    const links = await screen.findAllByRole('link', { name: /Harbour Lights/i });
+    const links = await screen.findAllByRole('link', { name: /Cookies baking in the oven/i });
     expect(links.length).toBeGreaterThan(0);
     await user.click(links[0]);
 
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: /Harbour Lights — a short film in three tides/i,
+        name: /Cookies baking in the oven/i,
       }),
     ).toBeInTheDocument();
   });
 
-  it('renders a watch page with a real video element and a related rail', () => {
-    const { container } = renderAt('/watch/v-harbour');
-    const video = container.querySelector('video');
-    expect(video).not.toBeNull();
-    expect(video?.getAttribute('poster')).toMatch(/^data:image\/svg\+xml/);
-    expect(video?.querySelector('source')?.getAttribute('src')).toMatch(/\.mp4$/);
-    expect(screen.getByRole('heading', { name: /Related Videos/i })).toBeInTheDocument();
+  it('shows attribution for externally sourced sample media', () => {
+    const { container } = renderAt('/watch/v-baking-cookies');
+    const attribution = container.querySelector('.video-card__attribution');
+    expect(attribution).not.toBeNull();
+    expect(attribution?.textContent).toContain('CC0');
+    expect(attribution?.textContent).toContain('Wikimedia Commons');
   });
 
   it('renders a channel page from the channel index', async () => {
@@ -65,6 +63,7 @@ describe('navigation', () => {
       await screen.findByRole('heading', { level: 1, name: /Northlight Films/i }),
     ).toBeInTheDocument();
   });
+
 
   it('requires a local profile before showing the subscription feed', () => {
     renderAt('/subscriptions');

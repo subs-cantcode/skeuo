@@ -73,23 +73,30 @@ export function searchVideos(
   const channelNames = new Map(channels.map((channel) => [channel.id, channel.name]));
 
   const scored = videos
-    .filter(
-      (video) =>
-        (category === 'All' || video.category === category) &&
-        (!params.channelId || video.channelId === params.channelId),
-    )
     .map((video) => ({
       video,
+      channelName: channelNames.get(video.channelId) ?? '',
+    }))
+    .filter((entry) =>
+      (category === 'All' || entry.video.category === category) &&
+      (!params.channelId || entry.video.channelId === params.channelId)
+    )
+    .map((entry) => ({
+      video: entry.video,
+      channelName: entry.channelName,
       score: terms.length
-        ? relevanceScore(video, channelNames.get(video.channelId) ?? '', terms)
+        ? relevanceScore(entry.video, entry.channelName, terms)
         : 0,
     }))
     .filter(({ score }) => !terms.length || score > 0);
 
+  const stableTie = (a: typeof scored[number], b: typeof scored[number]) =>
+    b.video.views - a.video.views || a.video.uploadedAt.localeCompare(b.video.uploadedAt);
+
   const compare =
     sort === 'newest' ? byNewest : sort === 'oldest' ? byOldest : sort === 'views' ? byViews : null;
   scored.sort((a, b) =>
-    compare ? compare(a.video, b.video) : b.score - a.score || byViews(a.video, b.video),
+    compare ? compare(a.video, b.video) : b.score - a.score || stableTie(a, b),
   );
 
   return paginate(

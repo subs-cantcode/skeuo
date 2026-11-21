@@ -46,8 +46,15 @@ export interface Video {
   src: string;
   /** Deterministic seed for the locally generated thumbnail artwork. */
   thumbSeed: number;
+  /**
+   * Real frame thumbnail extracted from this video's own source file, when one
+   * exists. When absent, the generated SVG artwork from `thumbSeed` is used.
+   */
+  thumbnail?: string;
   /** True when the item is a local (frontend-only) draft. */
   localDraft?: boolean;
+  /** Attribution for externally sourced sample media, when applicable. */
+  attribution?: string;
 }
 
 export interface Comment {

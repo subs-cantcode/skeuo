@@ -125,7 +125,7 @@ export function WatchPage() {
               className="player"
               controls
               preload="metadata"
-              poster={thumbnailDataUri(video.thumbSeed, tint)}
+              poster={video.thumbnail ?? thumbnailDataUri(video.thumbSeed, tint)}
               onEnded={handleEnded}
             >
               <source src={video.src} type="video/mp4" />

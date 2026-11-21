@@ -4,7 +4,15 @@
  * No frames are scraped or copied: every image is an SVG built from the
  * video's numeric seed and its channel tint, so the same video always renders
  * the same picture and the repository ships no binary assets.
+ *
+ * This generator is the clearly labeled fallback used when the catalog does not
+ * yet have a verified real frame thumbnail. A real frame thumbnail, if one is ever
+ * extracted here, must come only from a reachable derivative file and replace the
+ * fallback only where that actually happened; the catalog must not claim a real
+ * frame where none was produced.
  */
+
+export const THUMBNAIL_RULE = 'fallback';
 
 function hexToRgb(hex: string): [number, number, number] {
   const clean = hex.replace('#', '');

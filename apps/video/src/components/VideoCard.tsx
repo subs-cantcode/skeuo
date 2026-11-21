@@ -33,6 +33,7 @@ export function VideoCard({ video, variant = 'grid' }: VideoCardProps) {
   const name = channelName(channel);
   const watchPath = `/watch/${video.id}`;
   const size = variant === 'row' ? 'row' : variant === 'compact' ? 'compact' : 'grid';
+  const showAttribution = Boolean(video.attribution);
   const titleSuffix =
     variant === 'compact'
       ? ' video-card__title--small'
@@ -46,9 +47,14 @@ export function VideoCard({ video, variant = 'grid' }: VideoCardProps) {
     </Link>
   );
   const title = (
-    <h3 className={`video-card__title${titleSuffix}`}>
-      <Link to={watchPath}>{video.title}</Link>
-    </h3>
+    <>
+      <h3 className={`video-card__title${titleSuffix}`}>
+        <Link to={watchPath}>{video.title}</Link>
+      </h3>
+      {showAttribution ? (
+        <p className="video-card__attribution">{video.attribution}</p>
+      ) : null}
+    </>
   );
 
   if (variant === 'row') {

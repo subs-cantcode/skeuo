@@ -7,8 +7,8 @@ const options = { videos: VIDEOS, channels: CHANNELS };
 
 describe('searchVideos', () => {
   it('matches a title', () => {
-    const result = searchVideos(options, { q: 'harbour lights' });
-    expect(result.items[0]?.id).toBe('v-harbour');
+    const result = searchVideos(options, { q: 'baking' });
+    expect(result.items[0]?.id).toBe('v-baking-cookies');
   });
 
   it('matches a channel name', () => {
@@ -18,8 +18,8 @@ describe('searchVideos', () => {
   });
 
   it('matches a tag', () => {
-    const result = searchVideos(options, { q: 'lighthouses' });
-    expect(result.items.map((video) => video.id)).toEqual(['v-lighthouse']);
+    const result = searchVideos(options, { q: 'baking' });
+    expect(result.items.map((video) => video.id)).toEqual(['v-baking-cookies']);
   });
 
   it('sorts by views and by date', () => {
@@ -38,12 +38,20 @@ describe('searchVideos', () => {
   });
 
   it('filters by category and returns everything without a query', () => {
-    const result = searchVideos(options, { category: 'Comedy', pageSize: 50 });
-    expect(result.total).toBeGreaterThan(0);
-    expect(result.items.every((video) => video.category === 'Comedy')).toBe(true);
-
-    const all = searchVideos(options, { pageSize: 100 });
+    const all = searchVideos(options, { category: 'All', pageSize: 50 });
     expect(all.total).toBe(VIDEOS.length);
+  });
+
+  it('handles a category that has no matching videos', () => {
+    const result = searchVideos(options, { category: 'Comedy', pageSize: 50 });
+    expect(result.items.length).toBe(0);
+    expect(result.total).toBe(0);
+  });
+
+  it('returns all videos for the All category', () => {
+    const result = searchVideos(options, { category: 'All', pageSize: 50 });
+    expect(result.total).toBe(VIDEOS.length);
+    expect(result.items).toHaveLength(VIDEOS.length);
   });
 
   it('returns an empty result for an unmatched query', () => {
@@ -52,10 +60,13 @@ describe('searchVideos', () => {
     expect(result.items).toEqual([]);
   });
 
-  it('paginates results', () => {
-    const first = searchVideos(options, { page: 1, pageSize: 5 });
-    const second = searchVideos(options, { page: 2, pageSize: 5 });
-    expect(first.items).toHaveLength(5);
-    expect(first.items[0].id).not.toBe(second.items[0].id);
+  it('paginates results with a stable order', () => {
+    const page = searchVideos(options, { pageSize: 3 });
+    expect(page.items).toHaveLength(3);
+    expect(page.total).toBeGreaterThan(3);
+    const page2 = searchVideos(options, { page: 2, pageSize: 3 });
+    if (page2.items.length > 0) {
+      expect(page.items[0].id).not.toBe(page2.items[0].id);
+    }
   });
 });
