@@ -21,6 +21,9 @@
   --warn: #8a5a00;
   --focus: #ffbf47;
   --danger: #a3231d;
+  /* One source of truth for compact thumbs: the image and its grid column must
+     always agree, or the picture paints over the title. */
+  --thumb-compact: 96px;
 }
 
 * {
@@ -589,12 +592,19 @@ button {
   flex-shrink: 0;
 }
 
+/* Belt and braces: a compact thumb may never paint outside its column. */
+.video-card--compact .thumb,
+.related-list__item .thumb,
+.playlist-items__row .thumb {
+  max-width: 100%;
+}
+
 .thumb--row {
   width: 120px;
 }
 
 .thumb--compact {
-  width: 96px;
+  width: var(--thumb-compact);
 }
 
 .video-card__title {
@@ -693,7 +703,7 @@ button {
 
 .video-card--compact {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-columns: var(--thumb-compact) minmax(0, 1fr);
   gap: 8px;
   align-items: start;
 }
@@ -1159,6 +1169,7 @@ button {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 8px;
+  overflow-wrap: anywhere;
 }
 
 .player-frame {
@@ -1476,7 +1487,7 @@ button {
 
 .related-list__item {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-columns: var(--thumb-compact) minmax(0, 1fr);
   gap: 8px;
   padding: 6px 0;
   border-bottom: 1px dotted var(--border);
@@ -1765,7 +1776,7 @@ button {
 
 .playlist-items__row {
   display: grid;
-  grid-template-columns: 22px 96px minmax(0, 1fr) auto;
+  grid-template-columns: 22px var(--thumb-compact) minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
   padding: 8px 0;
@@ -2014,22 +2025,36 @@ button {
     margin-top: 6px;
   }
 
-  .thumb--compact {
-    width: 112px;
+  :root {
+    --thumb-compact: 112px;
   }
-
-  
 }
 
 @media (max-width: 720px) {
+  /* Wrap instead of hiding links behind a horizontal scroll: on a phone there
+     is no affordance for a sideways-scrolling strip. */
+  .nav-bar__inner {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
   .nav-bar__list {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    flex: 1 1 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+    order: 1;
+  }
+
+  .nav-bar__upload {
+    order: 2;
+    margin-left: auto;
   }
 
   .nav-bar__link {
     white-space: nowrap;
+    min-height: 34px;
+    display: flex;
+    align-items: center;
   }
 
   .strip {
@@ -2078,22 +2103,17 @@ button {
     width: 96px;
   }
 
+  :root {
+    --thumb-compact: 80px;
+  }
+
   .playlist-items__row {
-    grid-template-columns: 18px 80px minmax(0, 1fr);
+    grid-template-columns: 18px var(--thumb-compact) minmax(0, 1fr);
   }
 
   .playlist-items__actions {
     grid-column: 1 / -1;
     justify-content: flex-start;
-  }
-
-  .playlist-items__row .thumb--compact,
-  .related-list__item .thumb--compact {
-    width: 80px;
-  }
-
-  .related-list__item {
-    grid-template-columns: 80px minmax(0, 1fr);
   }
 
   .watch-title {
@@ -2113,6 +2133,59 @@ button {
     left: 8px;
     right: 8px;
     max-width: none;
+  }
+
+  /* Every tab stays visible; wrapping beats a hidden horizontal strip. */
+  .tabs {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .account__list {
+    max-width: calc(100vw - 16px);
+  }
+
+  /* Comfortable touch targets without changing the era's proportions. */
+  .button,
+  .search-form__button,
+  .tabs__tab,
+  .field input,
+  .field select,
+  .search-form__input,
+  .inline-form input {
+    min-height: 32px;
+  }
+
+  .button,
+  .search-form__button,
+  .tabs__tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .account__list li a,
+  .account__list li button {
+    padding: 8px 10px;
+  }
+
+  /* Text-styled controls and selects are easy to miss with a thumb. */
+  select,
+  summary,
+  .link-button {
+    min-height: 32px;
+  }
+
+  .link-button {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .notice__close {
+    top: 2px;
+    right: 2px;
+    min-width: 32px;
+    min-height: 32px;
   }
 }
 

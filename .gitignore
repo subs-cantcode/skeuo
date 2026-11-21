@@ -26,3 +26,11 @@ skills-lock.json
 # A separate Freebuff project snapshot left in the workspace by an earlier
 # session. Not part of this repository; never commit it.
 skeuo/
+
+# Playwright output and responsive-audit artefacts
+apps/video/test-results/
+apps/video/playwright-report/
+apps/video/qa/screenshots/
+apps/video/qa/screenshots-after/
+apps/video/qa/final/
+apps/video/qa/audit*.json
