@@ -22,3 +22,7 @@ pnpm-store.*
 .claude
 skills-lock.json
 .vite
+
+# A separate Freebuff project snapshot left in the workspace by an earlier
+# session. Not part of this repository; never commit it.
+skeuo/

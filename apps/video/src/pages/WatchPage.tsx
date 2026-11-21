@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Avatar } from '../components/Avatar';
 import { SidebarBox } from '../components/SidebarBox';
@@ -56,6 +56,23 @@ export function WatchPage() {
   const [autoplayNext, setAutoplayNext] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [revealed, setRevealed] = useState<string[]>([]);
+  const [posterBroken, setPosterBroken] = useState(false);
+
+  const posterPath = video?.thumbnail;
+
+  // A poster is an attribute and cannot handle its own `onerror`. Probe the
+  // frame once and drop back to the generated artwork if the file is missing, so
+  // a deep-linked watch page never renders an empty player.
+  useEffect(() => {
+    setPosterBroken(false);
+    if (!posterPath) return;
+    const probe = new Image();
+    probe.onerror = () => setPosterBroken(true);
+    probe.src = posterPath;
+    return () => {
+      probe.onerror = null;
+    };
+  }, [posterPath]);
 
   usePageTitle(video ? video.title : 'Video not found');
 
@@ -118,6 +135,14 @@ export function WatchPage() {
       <div className="watch-main">
         <h1 className="watch-title">{video.title}</h1>
 
+        {video.demo ? (
+          <p className="watch-note">
+            <strong>Demonstration entry.</strong> The title, description, duration and
+            view count are fictional. Playback uses an openly licensed CC0 stand-in
+            clip from MDN Web Docs, not footage of the title above.
+          </p>
+        ) : null}
+
         <div className="player-frame">
           {video.src ? (
             <video
@@ -125,10 +150,16 @@ export function WatchPage() {
               className="player"
               controls
               preload="metadata"
-              poster={video.thumbnail ?? thumbnailDataUri(video.thumbSeed, tint)}
+              poster={
+                posterPath && !posterBroken
+                  ? posterPath
+                  : thumbnailDataUri(video.thumbSeed, tint)
+              }
               onEnded={handleEnded}
             >
-              <source src={video.src} type="video/mp4" />
+              {/* No `type`: the browser picks a source it can actually decode,
+                  so an unexpected container is not rejected on a wrong MIME. */}
+              <source src={video.src} />
               Your browser cannot play this file. Try another browser or download
               the video.
             </video>
@@ -281,6 +312,13 @@ export function WatchPage() {
                 </dd>
               </div>
             ) : null}
+            <div>
+              <dt>Playback:</dt>
+              <dd>
+                {video.attribution ??
+                  'CC0 stand-in clip from MDN Web Docs (not the title above)'}
+              </dd>
+            </div>
             <div>
               <dt>Views:</dt>
               <dd>{formatViews(video.views)}</dd>

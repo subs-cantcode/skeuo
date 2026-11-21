@@ -30,11 +30,35 @@ if (!existsSync(inputPath)) {
   console.error('missing input video:', inputPath);
   process.exit(1);
 }
-mkdirSync(dirname(outputPath), { recursive: true });
+if (!Number.isFinite(seekTo) || seekTo < 0) {
+  console.error('invalid timestamp:', timeArg);
+  process.exit(1);
+}
 
 const MIME = { '.mp4': 'video/mp4', '.webm': 'video/webm', '.ogv': 'video/ogg' };
 const mime = MIME[extname(inputPath).toLowerCase()] ?? 'application/octet-stream';
 const size = statSync(inputPath).size;
+
+/**
+ * Parse a single `bytes=start-end` range. Media elements only send this simple
+ * form; anything unparseable or unsatisfiable falls back to the whole file,
+ * which every client accepts.
+ */
+function parseRange(header, total) {
+  const match = /^bytes=(\d*)-(\d*)$/.exec(header ?? '');
+  const whole = { start: 0, end: total - 1 };
+  if (!match || (!match[1] && !match[2])) return whole;
+  const [, rawStart, rawEnd] = match;
+  if (!rawStart) {
+    const suffix = Number(rawEnd);
+    if (!Number.isFinite(suffix) || suffix <= 0) return whole;
+    return { start: Math.max(0, total - suffix), end: total - 1 };
+  }
+  const start = Number(rawStart);
+  const end = rawEnd ? Number(rawEnd) : total - 1;
+  if (!Number.isFinite(start) || start >= total) return whole;
+  return { start, end: Math.min(end, total - 1) };
+}
 
 const server = createServer((req, res) => {
   if (req.url === '/' || req.url === '/index.html') {
@@ -46,13 +70,18 @@ const server = createServer((req, res) => {
     return;
   }
   if (req.url === '/source') {
-    res.writeHead(200, {
+    // Honour `Range`, because the header below promises it. Advertising ranges
+    // while always returning 200 makes some clients seek into a dead stream.
+    const { start, end } = parseRange(req.headers.range, size);
+    const partial = start > 0 || end < size - 1;
+    res.writeHead(partial ? 206 : 200, {
       'content-type': mime,
-      'content-length': String(size),
+      'content-length': String(end - start + 1),
       'accept-ranges': 'bytes',
       'cache-control': 'no-store',
+      ...(partial ? { 'content-range': `bytes ${start}-${end}/${size}` } : {}),
     });
-    createReadStream(inputPath).pipe(res);
+    createReadStream(inputPath, { start, end }).pipe(res);
     return;
   }
   res.writeHead(404).end();
@@ -93,10 +122,15 @@ try {
     });
     await new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok)));
 
+    if (!video.videoWidth || !video.videoHeight) {
+      throw new Error('decoded frame has no dimensions');
+    }
     const canvas = document.createElement('canvas');
     canvas.width = 640;
     canvas.height = Math.round((640 * video.videoHeight) / video.videoWidth);
-    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('canvas 2d context unavailable');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
     return {
       dataUrl: canvas.toDataURL('image/webp', 0.82),
       width: canvas.width,
@@ -116,6 +150,8 @@ try {
   }
 
   const bytes = Buffer.from(playback.dataUrl.split(',')[1], 'base64');
+  // Created only now: a failed run must not leave an empty directory behind.
+  mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, bytes);
   console.log(
     JSON.stringify(

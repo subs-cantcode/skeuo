@@ -7,8 +7,8 @@ const options = { videos: VIDEOS, channels: CHANNELS };
 
 describe('searchVideos', () => {
   it('matches a title', () => {
-    const result = searchVideos(options, { q: 'baking' });
-    expect(result.items[0]?.id).toBe('v-baking-cookies');
+    const result = searchVideos(options, { q: 'harbour' });
+    expect(result.items[0]?.id).toBe('v-harbour');
   });
 
   it('matches a channel name', () => {
@@ -18,8 +18,8 @@ describe('searchVideos', () => {
   });
 
   it('matches a tag', () => {
-    const result = searchVideos(options, { q: 'baking' });
-    expect(result.items.map((video) => video.id)).toEqual(['v-baking-cookies']);
+    const result = searchVideos(options, { q: 'stairwell' });
+    expect(result.items.map((video) => video.id)).toEqual(['v-string-quartet']);
   });
 
   it('sorts by views and by date', () => {
@@ -43,9 +43,30 @@ describe('searchVideos', () => {
   });
 
   it('handles a category that has no matching videos', () => {
-    const result = searchVideos(options, { category: 'Comedy', pageSize: 50 });
+    const result = searchVideos(options, { category: 'Autos & Vehicles', pageSize: 50 });
     expect(result.items.length).toBe(0);
     expect(result.total).toBe(0);
+  });
+
+  it('keeps every previously populated category populated', () => {
+    const categories = [
+      'Film & Animation',
+      'Music',
+      'Howto & Style',
+      'Gaming',
+      'Science & Technology',
+      'News & Politics',
+      'Travel & Events',
+      'Comedy',
+      'Pets & Animals',
+      'Education',
+      'Sports',
+    ] as const;
+
+    for (const category of categories) {
+      const result = searchVideos(options, { category, pageSize: 50 });
+      expect(result.total, category).toBeGreaterThan(0);
+    }
   });
 
   it('returns all videos for the All category', () => {
@@ -68,5 +89,31 @@ describe('searchVideos', () => {
     if (page2.items.length > 0) {
       expect(page.items[0].id).not.toBe(page2.items[0].id);
     }
+  });
+});
+
+describe('catalog integrity', () => {
+  it('keeps the 24 demonstration entries and one real sample', () => {
+    const demos = VIDEOS.filter((video) => video.demo);
+    expect(demos).toHaveLength(24);
+
+    const real = VIDEOS.find((video) => video.id === 'v-mdn-flower');
+    expect(real?.demo).toBeUndefined();
+    expect(real?.thumbnail).toBe('/thumbnails/flower.webp');
+    expect(real?.durationSec).toBe(5);
+    expect(real?.attribution).toContain('CC0');
+  });
+
+  it('only plays sources that were verified to decode', () => {
+    const hosts = new Set(VIDEOS.map((video) => new URL(video.src).host));
+    expect([...hosts]).toEqual(['interactive-examples.mdn.mozilla.net']);
+  });
+
+  it('claims a real frame only for the entry it was extracted from', () => {
+    const withFrames = VIDEOS.filter((video) => video.thumbnail);
+    expect(withFrames.map((video) => video.id)).toEqual(['v-mdn-flower']);
+    expect(withFrames[0].src).toBe(
+      'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    );
   });
 });

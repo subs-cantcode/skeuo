@@ -1,8 +1,8 @@
 # Third-party components and media
 
-All application code, interface design, thumbnails, branding and copy in this
-repository are original to Skeuo Video. The following third-party works are used
-under their own licences.
+All application code, interface design, branding and copy in this repository are
+original to Skeuo Video. The following third-party works are used under their own
+licences.
 
 ## Runtime dependencies
 
@@ -21,41 +21,77 @@ under their own licences.
 | `vitest` | MIT | Unit tests |
 | `jsdom` | MIT | DOM environment for tests |
 | `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom` | MIT | Component tests |
+| `@playwright/test` | Apache-2.0 | Headless Chromium for `scripts/extract-thumbnail.mjs` and manual playback checks |
 | `@types/react`, `@types/react-dom` | MIT | Type definitions |
 
 No UI framework, icon pack, webfont or CSS library is used. Typography relies on
 system fonts (Verdana, Arial, Geneva), so no font files are shipped.
 
+## What the catalog actually contains
+
+The catalog has **25 entries**, in two clearly different kinds:
+
+| Kind | Count | Metadata | Playback |
+|------|-------|----------|----------|
+| Fictional demonstration entries (`demo: true`) | 24 | Invented titles, descriptions, durations, view counts and dates | One of two CC0 stand-in clips, assigned in rotation |
+| Real sample (`v-mdn-flower`) | 1 | Describes the footage that actually plays; duration measured | The same clip the thumbnail was extracted from |
+
+Every demonstration entry is labelled in the interface ("Demo entry — fictional
+title and metadata" on cards, a notice on the watch page), and the watch page
+names the stand-in clip under **Playback**. A demonstration entry's thumbnail and
+duration describe the fictional video, never the stand-in footage.
+
 ## Sample playback media
 
-The demo catalog streams two openly licensed sample clips in rotation, from
-MDN's CC0 example media. Both were checked on 2026-11-21: each loads over
-HTTPS, plays in Chromium and carries an audible audio track.
+Two openly licensed clips from MDN's CC0 example media are the only playback
+sources in the catalog. Both were checked on 2026-11-21: each loads over HTTPS,
+plays in Chromium, and reports a finite duration.
 
-| Clip | Source | Licence |
-|------|--------|---------|
-| Flower | `interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4` | CC0 |
-| Friday | `interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4` | CC0 |
+| Clip | Source | Licence | Used by |
+|------|--------|---------|---------|
+| Flower | `https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4` | CC0 1.0 | 12 demonstration entries (alternating), and `v-mdn-flower` |
+| Friday | `https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4` | CC0 1.0 | 12 demonstration entries (alternating) |
 
-Two earlier clips were dropped after testing: a Big Buck Bunny encode on
-`test-videos.co.uk` had no audio track (playback was silent), and the Blender
-trailers on `media.w3.org` were rejected by Chromium with
-`ERR_BLOCKED_BY_RESPONSE.NotSameOrigin`, leaving a dead player. Do not
-re-add media without checking that it loads, plays and has audio.
+CC0 1.0 requires no attribution. The catalog and the watch page still name the
+source for transparency.
 
-These are stand-ins for playback only. The titles, durations and view counts in
-`src/data/videos.ts` describe fictional videos, not these clips. They are loaded
-over HTTPS from their original hosts; no media files are committed here.
+### Media removed after testing
 
-If you fork this project for a public deployment, host your own openly licensed
-media or your own uploads. Do not add commercial or copyrighted video files to
-the repository.
+These were tried and are **not** part of the catalog or the repository:
+
+| Candidate | Reason |
+|-----------|--------|
+| `upload.wikimedia.org/…/Baking_cookies.ogv` | Theora `.ogv`; Chromium never reached `readyState >= 3`, and the player reported `networkState 3` (no usable source) |
+| `upload.wikimedia.org/…/Music_in_the_street,_Barcelona_01.webm` and the 480p VP9 transcode | Probes stalled at `readyState 0`, `networkState 1`, `duration null` |
+| `upload.wikimedia.org/…/EIDAN_500_-_Buenos_Aires_Subway_-_B_line.webm` | Same failure as above |
+| `archive.org/download/castaoca_000159/…` and `castaoca_000126/…` (Clark Family, Public Domain Mark 1.0) | Reachable and decodable, but not needed once the catalog returned to the two verified clips; no file or frame is retained |
+| `test-videos.co.uk` Big Buck Bunny encode | Carried no audio track |
+| Blender trailers on `media.w3.org` | Rejected by Chromium with `ERR_BLOCKED_BY_RESPONSE.NotSameOrigin` |
+
+Do not re-add media without checking that it loads, plays and reports a duration
+in the target browser. A source that fails to decode must be removed, not shipped
+with a mismatched `type` attribute.
+
+No media files are committed. If you fork this project for a public deployment,
+host your own openly licensed media or your own uploads. Do not add commercial or
+copyrighted video files to the repository.
 
 ## Thumbnails
 
-Every thumbnail is an SVG generated at runtime by `src/lib/thumbnails.ts` from a
-numeric seed and the channel's tint. No frame grabs, stock photography or
-third-party artwork are included.
+| Kind | Count | Where it comes from |
+|------|-------|---------------------|
+| Generated SVG artwork | 24 | `src/lib/thumbnails.ts`, deterministic from `thumbSeed` and the channel tint |
+| Real extracted frame | 1 | `public/thumbnails/flower.webp` — a frame of `flower.mp4` at 3.0 s, 640×360, 16,458 bytes |
+
+The single real frame is from the same CC0 file that `v-mdn-flower` plays, so it
+depicts its own playback source. No frame is claimed for a fictional entry, and
+no stock photography or third-party artwork is included.
+
+The frame was produced with `scripts/extract-thumbnail.mjs` (Playwright Chromium
+plus a canvas WebP encoder); the method, prerequisites and failure handling are
+documented in [docs/sample-media.md](docs/sample-media.md). At runtime
+`Thumbnail.tsx` and the watch-page poster both fall back to the generated SVG if
+an image request fails, so no card or player shows a broken image.
 
 ## Branding
 

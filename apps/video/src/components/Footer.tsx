@@ -66,8 +66,9 @@ export function Footer() {
             </h2>
             <p className="site-footer__note">
               A frontend prototype built with React, TypeScript and Vite for the
-              Skeuo project. Sample videos are openly licensed films. Thumbnails
-              are generated SVG.
+              Skeuo project. Most entries are fictional demonstrations playing an
+              openly licensed CC0 stand-in clip; one is a real sample. Thumbnails
+              are generated SVG unless marked as an extracted frame.
             </p>
           </section>
         </div>

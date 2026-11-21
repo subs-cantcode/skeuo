@@ -38,8 +38,16 @@ database-backed storage, and real uploads are Milestones 2–3; see
   day, **Browse**, **Category**, **Playlists**, **Upload**, **Sign in**, and
   **Not found** pages.
 
-All navigation, pagination, and controls are functional. Sample videos are
-openly licensed stand-in clips, and every thumbnail is generated SVG.
+All navigation, pagination, and controls are functional.
+
+The catalog has 25 entries in two kinds. **24 are fictional demonstration
+entries**: the titles, descriptions, durations and view counts are invented, and
+each one streams an openly licensed CC0 stand-in clip from MDN Web Docs in
+rotation — every card and watch page says so. The 25th, `v-mdn-flower`, is a real
+sample whose title and duration describe the footage that plays, and whose
+thumbnail is a frame extracted from that same file. All other thumbnails are
+generated SVG. See [THIRD_PARTY.md](THIRD_PARTY.md) and
+[docs/sample-media.md](docs/sample-media.md).
 
 ## Quick start
 

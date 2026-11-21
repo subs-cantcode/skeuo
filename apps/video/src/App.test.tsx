@@ -30,28 +30,40 @@ describe('navigation', () => {
     expect(screen.getByRole('heading', { name: /Most Popular/i })).toBeInTheDocument();
   });
 
-  it('shows search results for the new catalog', async () => {
+  it('shows search results for the restored catalog', async () => {
     const user = userEvent.setup();
-    renderAt('/results?q=baking');
+    renderAt('/results?q=harbour');
 
-    const links = await screen.findAllByRole('link', { name: /Cookies baking in the oven/i });
+    const links = await screen.findAllByRole('link', { name: /Harbour Lights/i });
     expect(links.length).toBeGreaterThan(0);
     await user.click(links[0]);
 
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: /Cookies baking in the oven/i,
+        name: /Harbour Lights/i,
       }),
     ).toBeInTheDocument();
   });
 
-  it('shows attribution for externally sourced sample media', () => {
-    const { container } = renderAt('/watch/v-baking-cookies');
-    const attribution = container.querySelector('.video-card__attribution');
-    expect(attribution).not.toBeNull();
-    expect(attribution?.textContent).toContain('CC0');
-    expect(attribution?.textContent).toContain('Wikimedia Commons');
+  it('labels fictional entries as demonstration content', () => {
+    renderAt('/watch/v-harbour');
+    expect(screen.getByText(/Demonstration entry/i)).toBeInTheDocument();
+    expect(screen.getByText(/title, description, duration and/i)).toBeInTheDocument();
+  });
+
+  it('shows attribution for the real sample entry', () => {
+    const { container } = renderAt('/watch/v-mdn-flower');
+    const terms = [...container.querySelectorAll('.description__meta dt')].map(
+      (node) => node.textContent,
+    );
+    expect(terms).toContain('Playback:');
+
+    const values = [...container.querySelectorAll('.description__meta dd')]
+      .map((node) => node.textContent)
+      .join(' ');
+    expect(values).toContain('MDN Web Docs sample media');
+    expect(values).toContain('CC0 1.0');
   });
 
   it('renders a channel page from the channel index', async () => {
@@ -63,7 +75,6 @@ describe('navigation', () => {
       await screen.findByRole('heading', { level: 1, name: /Northlight Films/i }),
     ).toBeInTheDocument();
   });
-
 
   it('requires a local profile before showing the subscription feed', () => {
     renderAt('/subscriptions');

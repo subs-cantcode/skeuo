@@ -626,6 +626,29 @@ button {
   margin-top: 8px;
 }
 
+/* Third-party attribution and demonstration-content labels. */
+.video-card__attribution,
+.video-card__note {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.video-card__note {
+  font-style: italic;
+}
+
+.watch-note {
+  margin: 4px 0 10px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  background: #f4f2ec;
+  color: #444;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .video-card__meta {
   margin: 0;
   color: var(--muted);

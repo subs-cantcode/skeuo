@@ -53,6 +53,12 @@ export interface Video {
   thumbnail?: string;
   /** True when the item is a local (frontend-only) draft. */
   localDraft?: boolean;
+  /**
+   * True for fictional demonstration entries. Their title, description,
+   * duration and view count are invented, and playback uses a stand-in clip.
+   * The interface labels these so nothing is presented as a real video.
+   */
+  demo?: boolean;
   /** Attribution for externally sourced sample media, when applicable. */
   attribution?: string;
 }
