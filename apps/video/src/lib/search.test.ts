@@ -52,7 +52,7 @@ describe('searchVideos', () => {
     const categories = [
       'Film & Animation',
       'Music',
-      'Howto & Style',
+      'How to & Style',
       'Gaming',
       'Science & Technology',
       'News & Politics',

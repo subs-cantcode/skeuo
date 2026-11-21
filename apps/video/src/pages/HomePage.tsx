@@ -12,7 +12,7 @@ import { usePageTitle } from '../lib/usePageTitle';
 import { useStore } from '../store/AppStore';
 
 const NOTICE_KEY = 'openreel.notice.home.dismissed';
-const POPULAR_CATEGORIES = ['Music', 'Howto & Style', 'Comedy', 'Gaming', 'Travel & Events'];
+const POPULAR_CATEGORIES = ['Music', 'How to & Style', 'Comedy', 'Gaming', 'Travel & Events'];
 
 export function HomePage() {
   usePageTitle('Home');

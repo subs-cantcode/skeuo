@@ -5,7 +5,7 @@ export const CATEGORIES = [
   'Entertainment',
   'Film & Animation',
   'Gaming',
-  'Howto & Style',
+  'How to & Style',
   'Music',
   'News & Politics',
   'Nonprofits & Activism',
