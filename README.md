@@ -2,6 +2,8 @@
 
 **The internet, like it used to feel.**
 
+![Skeuo Video — just videos. Like the old days.](apps/video/public/branding/skeuo_video_wordmark.png)
+
 Skeuo is an independent open-source project that recreates the simplicity and
 nostalgic experience of older applications. The goal is not retro decoration for
 its own sake. The goal is to recover the parts of older software that felt

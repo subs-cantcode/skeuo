@@ -1,19 +1,20 @@
 import { Link } from 'react-router-dom';
 
 /**
- * Original Skeuo wordmark: a blue slab reading "Skeuo" beside "Video".
+ * Official Skeuo Video wordmark: blue play-button icon + "Skeuo Video" title
+ * + "Just videos. Like the old days." tagline.
  * No YouTube logo, wordmark, or proprietary asset is used.
  */
 export function Logo() {
   return (
     <Link to="/" className="logo" aria-label="Skeuo Video home">
-      <span className="logo__slab" aria-hidden="true">
-        Skeuo
-      </span>
-      <span className="logo__word" aria-hidden="true">
-        Video
-      </span>
-      <span className="logo__tagline">Just videos. Like the old days.</span>
+      <img
+        src="/branding/skeuo_video_wordmark.png"
+        alt="Skeuo Video"
+        width={528}
+        height={131}
+        className="logo__img"
+      />
     </Link>
   );
 }
