@@ -1,0 +1,21 @@
+{
+  "name": "skeuo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Skeuo — the internet, like it used to feel.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/video",
+    "build": "npm run build --workspace=apps/video",
+    "preview": "npm run preview --workspace=apps/video",
+    "typecheck": "npm run typecheck --workspace=apps/video",
+    "test": "npm run test --workspace=apps/video"
+  },
+  "workspaces": [
+    "apps/*"
+  ],
+  "devDependencies": {
+    "npm": "^11"
+  }
+}
