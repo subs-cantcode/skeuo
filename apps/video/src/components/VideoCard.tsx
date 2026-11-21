@@ -54,6 +54,11 @@ export function VideoCard({ video, variant = 'grid' }: VideoCardProps) {
       {showAttribution ? (
         <p className="video-card__attribution">{video.attribution}</p>
       ) : null}
+      {video.local ? (
+        <p className="video-card__note video-card__note--local">
+          Local — Only you · stored in this browser
+        </p>
+      ) : null}
       {video.demo ? (
         <p className="video-card__note">Demo entry — fictional title and metadata</p>
       ) : null}

@@ -13,6 +13,8 @@ import { SEED_COMMENTS } from '../data/comments';
 import { VIDEOS } from '../data/videos';
 import type { Channel, Comment, Playlist, Toast, Video, Vote } from '../types';
 import { loadJson, saveJson } from './persistence';
+import { LIBRARY_CHANNEL_ID, libraryEntryToVideo } from '../lib/library';
+import { useLibrary, type LibraryApi } from './useLibrary';
 
 export interface Profile {
   name: string;
@@ -48,6 +50,24 @@ export function localChannel(profile: Profile): Channel {
   };
 }
 
+/**
+ * Stand-in channel for imported videos. Signed in, the profile's own channel is
+ * used instead; signed out, the library still needs a channel for its cards.
+ */
+const LIBRARY_CHANNEL: Channel = {
+  id: LIBRARY_CHANNEL_ID,
+  name: 'My Library',
+  handle: 'mylibrary',
+  bio: 'Videos imported into this browser. They are stored on this device and are never uploaded anywhere.',
+  joined: new Date().toISOString().slice(0, 10),
+  country: 'Not set',
+  website: '',
+  themeColor: '#4a4f57',
+  subscribers: 0,
+  channelViews: 0,
+  videosWatched: 0,
+};
+
 function readState(): PersistedState {
   const stored = loadJson<Partial<PersistedState>>(STORAGE_KEY, {});
   return {
@@ -70,6 +90,7 @@ function readState(): PersistedState {
 interface StoreValue extends PersistedState {
   videos: Video[];
   channels: Channel[];
+  library: LibraryApi;
   ownChannel: Channel | null;
   getChannel: (id: string) => Channel | undefined;
   getVideo: (id: string) => Video | undefined;
@@ -99,6 +120,7 @@ const StoreContext = createContext<StoreValue | null>(null);
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<PersistedState>(readState);
+  const library = useLibrary();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const toastId = useRef(0);
   const timers = useRef<number[]>([]);
@@ -134,14 +156,19 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     [state.profile],
   );
 
-  const channels = useMemo(
-    () => (ownChannel ? [ownChannel, ...CHANNELS] : CHANNELS),
-    [ownChannel],
+  const libraryVideos = useMemo(
+    () => library.items.map(libraryEntryToVideo),
+    [library.items],
   );
 
+  const channels = useMemo(() => {
+    const list = ownChannel ? [ownChannel, ...CHANNELS] : [...CHANNELS];
+    return libraryVideos.length > 0 ? [LIBRARY_CHANNEL, ...list] : list;
+  }, [ownChannel, libraryVideos.length]);
+
   const videos = useMemo(
-    () => [...state.drafts, ...VIDEOS],
-    [state.drafts],
+    () => [...state.drafts, ...libraryVideos, ...VIDEOS],
+    [state.drafts, libraryVideos],
   );
 
   const getChannel = useCallback(
@@ -341,6 +368,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     ...state,
     videos,
     channels,
+    library,
     ownChannel,
     getChannel,
     getVideo,

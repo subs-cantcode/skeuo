@@ -2138,6 +2138,151 @@ button {
   }
 }
 
+/* ---------- local (imported) video markers ---------- */
+
+.thumb__badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  padding: 1px 5px;
+  background: #1f3a5f;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1.35;
+  letter-spacing: 0.2px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.video-card__note--local {
+  font-style: normal;
+  font-weight: bold;
+  color: var(--brand-dark);
+}
+
+.results-local {
+  margin: 0 0 8px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-soft);
+  background: #f6f5f1;
+}
+
+/* ---------- my videos (local library) ---------- */
+
+.library-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.library-head .page-title {
+  margin-bottom: 6px;
+}
+
+.library-storage {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.library-storage .progress {
+  margin: 4px 0 6px;
+}
+
+.library-progress-wrap {
+  margin-top: 10px;
+}
+
+.library-progress {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0;
+  border: 1px solid var(--border-soft);
+}
+
+.library-progress li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 11.5px;
+}
+
+.library-progress li:last-child {
+  border-bottom: 0;
+}
+
+.library-progress__name {
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.library-progress__stage {
+  color: var(--muted);
+  text-align: right;
+}
+
+.library-progress li.is-error .library-progress__stage {
+  color: var(--danger);
+  font-weight: bold;
+}
+
+.library-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.library-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--border-soft);
+  background: #fff;
+}
+
+.library-card__facts {
+  margin: 0;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.library-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: 11.5px;
+}
+
+.library-form {
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.library-form .field {
+  margin: 0;
+}
+
+.library-form__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.library-confirm {
+  color: var(--danger);
+  font-weight: bold;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;

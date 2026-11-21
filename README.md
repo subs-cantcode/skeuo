@@ -56,6 +56,9 @@ there is no server yet.
   Videos / Playlists / Subscribers / About tabs.
 - **Channels index**, **Subscriptions** feed, **Browse** and **Category** pages,
   **Playlists**, **Upload**, **Sign in**, and **Not found** pages.
+- **My Videos** — a local-first library at `/my-videos`: import your own video
+  files, play them, edit titles and descriptions, and delete them. Files live in
+  IndexedDB in this browser only and are marked **Local — Only you**.
 - **Local profile** — a name and handle stored in the browser, which unlocks
   subscriptions, votes, comments, playlists, and uploads. It is **not**
   authentication: no password, no server, no security claim.
@@ -72,8 +75,10 @@ watch-time analytics.
 
 ### Status
 
-Milestone 1 is complete as a browsing experience. Milestone 2 and later will add
-real accounts, storage, and a backend. See [apps/video/docs/architecture.md](apps/video/docs/architecture.md).
+Milestone 1 is complete as a browsing experience, and v0.2.0 adds a local-first
+personal video library (`/my-videos`) backed by IndexedDB. Milestone 2 and later
+will add real accounts, shared storage, and a backend. See
+[apps/video/docs/architecture.md](apps/video/docs/architecture.md).
 
 ## Quick start
 
@@ -118,6 +123,10 @@ milestones will use.
 
 - **Milestone 1 — frontend prototype.** Done. Browsing, search, channels,
   playlists, comments, votes, and local uploads work in the browser.
+- **v0.2.0 — personal video library.** Done. Import, play, edit, and delete your
+  own files, stored in this browser with IndexedDB.
+- **Backup and export (planned).** Export the local library as one archive and
+  re-import it, so clearing a browser profile does not lose the collection.
 - **Milestone 2 — accounts and data.** Not started. A real backend with
   session-based accounts and persistent storage.
 - **Milestone 3 — uploads and playback.** Not started. Real file intake,

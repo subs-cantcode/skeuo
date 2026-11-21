@@ -5,6 +5,7 @@ import { CategoryPage } from './pages/CategoryPage';
 import { ChannelPage } from './pages/ChannelPage';
 import { ChannelsPage } from './pages/ChannelsPage';
 import { HomePage } from './pages/HomePage';
+import { MyVideosPage } from './pages/MyVideosPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { PlaylistsPage } from './pages/PlaylistsPage';
 import { SearchPage } from './pages/SearchPage';
@@ -25,6 +26,7 @@ export function AppRoutes() {
         <Route path="/subscriptions" element={<SubscriptionsPage />} />
         <Route path="/results" element={<SearchPage />} />
         <Route path="/playlists" element={<PlaylistsPage />} />
+        <Route path="/my-videos" element={<MyVideosPage />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/videos" element={<BrowsePage />} />

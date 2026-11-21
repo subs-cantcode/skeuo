@@ -37,6 +37,9 @@ export function Thumbnail({ video, tint, size = 'grid' }: ThumbnailProps) {
         decoding="async"
       />
       <span className="thumb__duration">{formatDuration(video.durationSec)}</span>
+      {/* Imported files are private to this browser, and the badge says so
+          wherever a thumbnail appears: grid, search row, rail, or playlist. */}
+      {video.local ? <span className="thumb__badge">Local — Only you</span> : null}
     </span>
   );
 }

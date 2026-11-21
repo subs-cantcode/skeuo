@@ -5,13 +5,15 @@ and what Milestones 2–4 will change.
 
 ## 1. Scope and honesty
 
-Milestone 1 is a **frontend-only** application. It is complete as a browsing
-experience: every page, link, form, vote, comment, playlist and simulated upload
-works in the browser. It is not a backend. There is no authentication, no
-database, no media storage and no transcoding.
+This is a **frontend-only** application. It is complete as a browsing experience:
+every page, link, form, vote, comment, playlist and simulated upload works in the
+browser. It is not a backend. There is no authentication, no shared database and
+no transcoding. Since v0.2.0 there *is* media storage, but only in the visitor's
+own browser: imported files are written to IndexedDB on the device and are never
+uploaded.
 
-The UI states this in four places: the homepage notice, the sign-in page, the
-subscriptions gate and the upload page. Mocked data is labelled as sample data
+The UI states this in five places: the homepage notice, the sign-in page, the
+subscriptions gate, the upload page and My Videos. Mocked data is labelled as sample data
 in the code that defines it (`src/data/*.ts`) and in this document.
 
 ## 2. Stack and why
@@ -40,7 +42,7 @@ src/
     NavBar.tsx             Primary navigation + upload
     Footer.tsx             Era-style link columns and disclaimer
     VideoCard.tsx          grid / row / compact / feature variants
-    Thumbnail.tsx          Generated artwork + duration chip
+    Thumbnail.tsx          Generated artwork, duration chip, Local badge
     Pagination.tsx         Numbered paging driven by the query string
     SortTabs.tsx           Tab strip above a listing
     SidebarBox.tsx         Bordered module with gray header strip
@@ -61,6 +63,7 @@ src/
     SubscriptionsPage.tsx  Chronological feed grouped by day
     PlaylistsPage.tsx      Create/rename/delete/reorder/play all
     UploadPage.tsx         Local upload, validation, simulated pipeline
+    MyVideosPage.tsx       Local library: import, play, edit, delete
     SignInPage.tsx         Local profile (not authentication)
     NotFoundPage.tsx       404
   lib/
@@ -73,6 +76,7 @@ src/
     stats.ts               Deterministic vote counts, day grouping
     thumbnails.ts          Deterministic SVG data URIs
     validate.ts            Upload rules shared with the UI copy
+    library.ts             IndexedDB library, media probing, poster capture
     usePageTitle.ts        Per-route document titles
   data/
     channels.ts            Seven fictional channels
@@ -81,6 +85,7 @@ src/
   store/
     AppStore.tsx           Context state and all mutations
     persistence.ts         Guarded localStorage access
+    useLibrary.ts          Library state, import pipeline, object URLs
   test/setup.ts            jest-dom + jsdom shims
 ```
 
@@ -99,6 +104,14 @@ toasts         transient UI feedback        not persisted
 Everything except `toasts` is written to `localStorage` under
 `openreel.state.v1`. Writes are guarded: if storage is unavailable (private
 mode, quota), the app keeps working in memory.
+
+Imported videos are **not** part of that JSON. `lib/library.ts` keeps them in
+IndexedDB (`skeuo.video.library`): metadata in a `videos` store, the file and
+poster blobs in a `media` store, so editing a title never rewrites video bytes.
+`useLibrary` turns each record into a `Video` with object URLs and merges it into
+the same list the rest of the app reads, which is why cards, search and the watch
+page need no parallel code path. Object URLs are revoked on delete and on
+unmount; the bytes stay on disk and are re-exposed on the next load.
 
 Derived values are computed on read rather than stored: seeded comments are
 merged with local ones, drafts are prepended to the catalog, channels include
@@ -140,7 +153,8 @@ because none exists.
 | `/channels` | Channel index |
 | `/subscriptions` | Chronological feed |
 | `/playlists` | Playlist management (`?list=`, `?add=`) |
-| `/upload` | Upload |
+| `/upload` | Upload (simulated) |
+| `/my-videos` | Personal library (import, edit, delete) |
 | `/signin` | Local profile (`?next=`, `?mode=register`) |
 | `*` | Not found |
 
@@ -178,6 +192,18 @@ empty screen.
   arrives with the server in Milestone 2.
 
 ## 9. Roadmap
+
+### v0.2.0 — personal video library (done)
+
+- Import local files into IndexedDB, capture a poster frame with canvas in the
+  browser, edit title/description, delete with confirmation. No server, no
+  account, no network request carrying file bytes.
+- Files are private to the browser profile and labelled **Local — Only you** on
+  the thumbnail, the card, the watch page and in search results.
+- 200 MB per file; quota is the browser's for this origin.
+- **Backup and export is deliberately deferred.** It needs a container decision
+  (one archive vs. loose files) and an import path that validates a manifest
+  before writing anything. Listed here so it is not mistaken for done.
 
 ### Milestone 2 — data and accounts
 

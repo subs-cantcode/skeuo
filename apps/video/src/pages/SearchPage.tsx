@@ -143,6 +143,13 @@ export function SearchPage() {
                 {category !== 'All' ? ` in ${category}` : ''} · sorted by{' '}
                 {SORT_LABELS[sort].toLowerCase()}
               </p>
+              {result.items.some((video) => video.local) ? (
+                <p className="meta results-local">
+                  Results marked <strong>Local — Only you</strong> are files you imported
+                  into this browser. They are stored on this device and are never
+                  uploaded.
+                </p>
+              ) : null}
               <ul className="result-list">
                 {result.items.map((video) => (
                   <li key={video.id}>

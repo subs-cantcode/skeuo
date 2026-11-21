@@ -85,6 +85,16 @@ describe('navigation', () => {
     expect(screen.getByText(/Subscriptions are per account/i)).toBeInTheDocument();
   });
 
+  it('offers a My Videos page for the local library', () => {
+    renderAt('/my-videos');
+    expect(
+      screen.getByRole('heading', { level: 1, name: /My Videos/i }),
+    ).toBeInTheDocument();
+    // jsdom has no IndexedDB, so the page must explain the limitation instead of
+    // pretending the feature works.
+    expect(screen.getByText(/Local storage is not available/i)).toBeInTheDocument();
+  });
+
   it('falls back to a not-found page for unknown routes', () => {
     renderAt('/no-such-page');
     expect(

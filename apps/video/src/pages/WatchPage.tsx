@@ -17,6 +17,7 @@ import {
 import { moreFromChannel, relatedVideos } from '../lib/related';
 import { voteCounts } from '../lib/stats';
 import { thumbnailDataUri } from '../lib/thumbnails';
+import { formatBytes } from '../lib/validate';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useStore } from '../store/AppStore';
 import { NotFoundPage } from './NotFoundPage';
@@ -140,6 +141,14 @@ export function WatchPage() {
             <strong>Demonstration entry.</strong> The title, description, duration and
             view count are fictional. Playback uses an openly licensed CC0 stand-in
             clip from MDN Web Docs, not footage of the title above.
+          </p>
+        ) : null}
+
+        {video.local ? (
+          <p className="watch-note">
+            <strong>Local — Only you.</strong> This video was imported from this computer
+            into the browser's local library. It is never uploaded to Skeuo or anywhere
+            else, and it is visible only in this browser profile.
           </p>
         ) : null}
 
@@ -315,10 +324,32 @@ export function WatchPage() {
             <div>
               <dt>Playback:</dt>
               <dd>
-                {video.attribution ??
-                  'CC0 stand-in clip from MDN Web Docs (not the title above)'}
+                {video.local
+                  ? 'Local file from this browser’s library — never uploaded'
+                  : (video.attribution ??
+                    'CC0 stand-in clip from MDN Web Docs (not the title above)')}
               </dd>
             </div>
+            {video.local ? (
+              <>
+                <div>
+                  <dt>Source:</dt>
+                  <dd>{video.fileName ?? 'Local file'}</dd>
+                </div>
+                <div>
+                  <dt>Resolution:</dt>
+                  <dd>
+                    {video.width && video.height ? `${video.width}×${video.height}` : 'Unknown'}
+                  </dd>
+                </div>
+                {video.sizeBytes ? (
+                  <div>
+                    <dt>File size:</dt>
+                    <dd>{formatBytes(video.sizeBytes)}</dd>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
             <div>
               <dt>Views:</dt>
               <dd>{formatViews(video.views)}</dd>

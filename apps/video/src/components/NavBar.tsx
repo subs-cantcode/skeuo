@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 const LINKS = [
   { to: '/', label: 'Home', end: true },
   { to: '/videos', label: 'Videos' },
+  { to: '/my-videos', label: 'My Videos' },
   { to: '/subscriptions', label: 'Subscriptions' },
   { to: '/channels', label: 'Channels' },
   { to: '/categories', label: 'Categories' },

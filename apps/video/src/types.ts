@@ -53,6 +53,15 @@ export interface Video {
   thumbnail?: string;
   /** True when the item is a local (frontend-only) draft. */
   localDraft?: boolean;
+  /** True for a video imported into this browser's own library (IndexedDB). */
+  local?: boolean;
+  /** Pixel dimensions of an imported file. */
+  width?: number;
+  height?: number;
+  /** Size of the imported file in bytes. */
+  sizeBytes?: number;
+  /** Original filename of an imported file, shown for context. */
+  fileName?: string;
   /**
    * True for fictional demonstration entries. Their title, description,
    * duration and view count are invented, and playback uses a stand-in clip.
