@@ -2040,7 +2040,7 @@ button {
   }
 
   .logo__img {
-    width: 120px;
+    width: 132px;
   }
 
   .video-grid {
@@ -2108,6 +2108,10 @@ button {
 
   .thumb--row {
     width: 84px;
+  }
+
+  .logo__img {
+    width: 120px;
   }
 }
 
