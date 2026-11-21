@@ -75,7 +75,7 @@ real accounts, storage, and a backend. See [apps/video/docs/architecture.md](app
 
 ## Quick start
 
-Requirements: Node.js 20+ and npm.
+Requirements: Node.js 24+ and npm.
 
 ```bash
 npm install

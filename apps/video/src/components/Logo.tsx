@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 /**
- * Original Skeuo wordmark: a red slab reading "Skeuo" beside "Video".
+ * Original Skeuo wordmark: a blue slab reading "Skeuo" beside "Video".
  * No YouTube logo, wordmark, or proprietary asset is used.
  */
 export function Logo() {

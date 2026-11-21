@@ -34,8 +34,8 @@ protected asset. All marks and artwork are original.
 | `--muted` | `#666666` | metadata, timestamps, counts |
 | `--link` | `#0033bb` | default and visited hyperlinks |
 | `--link-hover` | `#cc0000` | hover underline accent |
-| `--brand` | `#c4302b` | original wordmark accent, primary buttons |
-| `--brand-dark` | `#8f1f1b` | button hover |
+| `--brand` | `#4169A8` | original wordmark accent, primary buttons |
+| `--brand-dark` | `#2f4a78` | button hover |
 | `--ok` | `#2e6b2e` | success text |
 | `--warn` | `#8a5a00` | warning text |
 | `--focus` | `#ffbf47` | 2px keyboard focus outline |
