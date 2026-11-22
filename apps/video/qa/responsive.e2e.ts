@@ -151,6 +151,7 @@ async function measure(page: Page): Promise<LayoutReport> {
 
 test('category labels are corrected and the new category resolves', async ({ page }) => {
   await page.goto('/results?q=repair');
+  await expect(page.locator('#category-filter')).toBeVisible();
   const options = await page.locator('select option').allTextContents();
 
   expect(options).toContain('How to & Style');

@@ -4,7 +4,10 @@
 application's demo catalog. Source:
 https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4
 
-It stands in for a user's local video in upload/import UI tests. No user video
-is included. Chromium exercises decoding, frame capture and IndexedDB storage.
-Windows WebKit uses explicitly annotated media/storage substitutes because its
-H.264 decoder and Blob persistence are unavailable in this environment.
+`flower.webm` is the same CC0 sample in WebM, used for actual playback tests:
+https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm
+
+These stand in for user videos in upload/import tests; no user video is included.
+The current suite uses WebM for real decoding and poster extraction in all three
+engines. A runtime probe checks IndexedDB Blob persistence. Only if that probe
+fails is the storage boundary replaced, with an explicit test annotation.

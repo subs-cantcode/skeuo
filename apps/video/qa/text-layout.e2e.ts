@@ -54,7 +54,7 @@ async function seed(page: Page) {
     });
   }, titles);
   if (storageError) {
-    // Windows Playwright WebKit cannot persist Blob values in this environment.
+    // Some host/browser contexts cannot persist Blob values.
     // Supply the same records at the storage boundary to exercise real local
     // card/watch components. This is explicitly not an import/storage test.
     await page.route('**/src/lib/library.ts', async route => {
@@ -132,7 +132,8 @@ async function measure(page: Page) {
 for (const [width, height] of sizes) {
   test.describe(`${width}px text layout`, () => {
   test.use(width < 768 ? {
-    isMobile: true, hasTouch: true, deviceScaleFactor: 3,
+    isMobile: async ({ browserName }, use) => { await use(browserName !== 'firefox'); },
+    hasTouch: true, deviceScaleFactor: 3,
     userAgent: devices['iPhone 13'].userAgent,
   } : { isMobile: false });
   test(`title and metadata flow at ${width}x${height}`, async ({ page }, testInfo) => {

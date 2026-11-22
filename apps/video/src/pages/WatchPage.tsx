@@ -5,6 +5,7 @@ import { SidebarBox } from '../components/SidebarBox';
 import { SubscribeButton } from '../components/SubscribeButton';
 import { Thumbnail } from '../components/Thumbnail';
 import { VideoCard } from '../components/VideoCard';
+import { ClassicPlayer } from '../components/ClassicPlayer';
 import { channelTint } from '../lib/channel';
 import {
   formatDate,
@@ -162,24 +163,17 @@ export function WatchPage() {
 
         <div className="player-frame">
           {video.src ? (
-            <video
+            <ClassicPlayer
               key={video.id}
-              className="player"
-              controls
-              preload="metadata"
+              src={video.src}
+              title={video.title}
               poster={
                 posterPath && !posterBroken
                   ? posterPath
                   : thumbnailDataUri(video.thumbSeed, tint)
               }
               onEnded={handleEnded}
-            >
-              {/* No `type`: the browser picks a source it can actually decode,
-                  so an unexpected container is not rejected on a wrong MIME. */}
-              <source src={video.src} />
-              Your browser cannot play this file. Try another browser or download
-              the video.
-            </video>
+            />
           ) : (
             <div className="player-frame__placeholder">
               <p>

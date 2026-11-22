@@ -12,9 +12,10 @@ export default defineConfig({
   testDir: './qa',
   testMatch: '**/*.e2e.ts',
   fullyParallel: false,
-  workers: 2,
+  workers: 3,
   projects: [
     { name: 'chromium', use: { browserName: 'chromium' } },
+    { name: 'firefox', use: { browserName: 'firefox' } },
     { name: 'webkit', use: { browserName: 'webkit' } },
   ],
   reporter: [['list']],

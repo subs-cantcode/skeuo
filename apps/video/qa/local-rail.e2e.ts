@@ -6,30 +6,57 @@ const phase = process.env.OVERLAP_CAPTURE === 'before' ? 'before' : 'after';
 const widths = [320, 360, 375, 390, 414, 430, 1440];
 for (const width of widths) {
   test.describe(`local rail ${width}px`, () => {
-    test.use(width < 768 ? { userAgent: devices['iPhone 13'].userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width, height: 844 } } : { viewport: { width, height: 900 } });
-    test('real local file upload and import keep rail text clear', async ({ page, browserName }, testInfo) => {
+    test.use(width < 768 ? { userAgent: devices['iPhone 13'].userAgent, isMobile: async ({ browserName }, use) => { await use(browserName !== 'firefox'); }, hasTouch: true, deviceScaleFactor: 3, viewport: { width, height: 844 } } : { viewport: { width, height: 900 } });
+    test('real local file upload and import keep rail text clear', async ({ page }, testInfo) => {
       test.setTimeout(90_000);
       await page.addInitScript(() => {
         if (!localStorage.getItem('skeuo.video.state.v1')) localStorage.setItem('skeuo.video.state.v1', JSON.stringify({ profile: { name: 'Nabus', handle: 'nabus' } }));
       });
-      if (browserName === 'webkit') {
-        // Windows WebKit cannot decode this H.264 clip or persist Blob values.
-        // Exercise file selection/import rendering with explicit media/storage
-        // substitutes. Chromium exercises the complete real-file pipeline.
+      await page.goto('/my-videos');
+      const blobStorage = await page.evaluate(() => new Promise<boolean>(resolve => {
+        let db: IDBDatabase | undefined;
+        const finish = (supported: boolean) => { clearTimeout(timeout); db?.close(); resolve(supported); };
+        const timeout = setTimeout(() => finish(false), 3000);
+        const request = indexedDB.open('skeuo.qa.blob-probe', 1);
+        request.onupgradeneeded = () => request.result.createObjectStore('probe');
+        request.onerror = () => finish(false);
+        request.onsuccess = () => {
+          db = request.result;
+          try {
+            const tx = db.transaction('probe', 'readwrite');
+            tx.objectStore('probe').put({ file: new File(['probe'], 'probe.webm', { type: 'video/webm' }), poster: new Blob(['poster']) }, 'file');
+            tx.oncomplete = () => finish(true);
+            tx.onabort = tx.onerror = () => finish(false);
+          } catch { finish(false); }
+        };
+      }));
+      const blobDecoder = await page.evaluate(async () => {
+        const library = await import('/src/lib/library.ts');
+        try {
+          const blob = await (await fetch('/qa/fixtures/flower.webm')).blob();
+          await library.probeMediaFile(new File([blob], 'probe.webm', { type: 'video/webm' }));
+          return true;
+        } catch { return false; }
+      });
+      if (!blobStorage || !blobDecoder) {
+        // Substitute only capabilities that this host actually fails. HTTP
+        // playback in the separate player suite always uses real media APIs.
         await page.route('**/src/lib/library.ts', async route => {
           const response = await route.fetch();
-          await route.fulfill({ response, body: await response.text() + '\nconst qaRecords = []; readLibrary = async () => qaRecords; putLibraryRecord = async record => { qaRecords.push(record); }; probeMediaFile = async () => ({durationSec:5,width:960,height:540}); capturePoster = async () => ({poster:await (await fetch("/thumbnails/flower.webp")).blob(),failure:null});\n' });
+          const storage = !blobStorage ? 'const qaRecords = []; readLibrary = async () => qaRecords; putLibraryRecord = async record => { qaRecords.push(record); };' : '';
+          const media = !blobDecoder ? 'probeMediaFile = async () => ({durationSec:5,width:960,height:540}); capturePoster = async () => ({poster:await (await fetch("/thumbnails/flower.webp")).blob(),failure:null});' : '';
+          await route.fulfill({ response, body: await response.text() + '\n' + storage + media + '\n' });
         });
-        testInfo.annotations.push({ type: 'media/storage limit', description: 'Windows WebKit H.264 decoding and Blob persistence replaced at module boundaries; real thumbnail Blob and local upload/import UI rendered.' });
+        testInfo.annotations.push({ type: 'host capabilities', description: `Native Blob storage: ${blobStorage}; native Blob decoding: ${blobDecoder}. Only failed capabilities substituted; HTTP playback tested without substitutes.` });
       }
-      const bytes = await readFile(path.resolve('qa/fixtures/flower.mp4'));
+      const bytes = await readFile(path.resolve('qa/fixtures/flower.webm'));
       const titles = ['just flexing my abs hehehe :)', 'A long local video title describing my workout and how it went during the afternoon', 'Unbroken' + 'WorkoutVideo'.repeat(7)];
       const reports = [];
       const directory = path.resolve('qa/text-layout-artifacts', phase, testInfo.project.name, `local-${width}`);
       await mkdir(directory, { recursive: true });
       for (const title of titles) {
         await page.goto('/upload');
-        await page.locator('#video-file').setInputFiles({ name: `${title}.mp4`, mimeType: 'video/mp4', buffer: bytes });
+        await page.locator('#video-file').setInputFiles({ name: `${title}.webm`, mimeType: 'video/webm', buffer: bytes });
         await page.locator('#upload-title').fill(title);
         await page.locator('#upload-category').selectOption('Fitness & Health');
         // Native form submission via Enter avoids mobile-emulation pointer
@@ -44,7 +71,8 @@ for (const width of widths) {
       for (const mode of ['upload', 'import']) {
         if (mode === 'import') {
           await page.goto('/my-videos');
-          await page.locator('#library-files').setInputFiles(titles.map(title => ({ name: `${title}.mp4`, mimeType: 'video/mp4', buffer: bytes })));
+          await page.locator('#library-files').setInputFiles(titles.map(title => ({ name: `${title}.webm`, mimeType: 'video/webm', buffer: bytes })));
+          await expect(page.locator('.library-card, .library-progress li.is-error')).toHaveCount(3, { timeout: 60000 });
           await expect(page.locator('.library-card')).toHaveCount(3, { timeout: 60000 });
           await page.locator('.library-card .video-card__title a').first().click();
         }

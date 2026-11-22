@@ -21,7 +21,7 @@ licences.
 | `vitest` | MIT | Unit tests |
 | `jsdom` | MIT | DOM environment for tests |
 | `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom` | MIT | Component tests |
-| `@playwright/test` | Apache-2.0 | Headless Chromium for `scripts/extract-thumbnail.mjs` and manual playback checks |
+| `@playwright/test` | Apache-2.0 | Chromium, Firefox and WebKit playback/layout regression tests; Chromium thumbnail extraction |
 | `@types/react`, `@types/react-dom` | MIT | Type definitions |
 
 No UI framework, icon pack, webfont or CSS library is used. Typography relies on
@@ -72,9 +72,13 @@ Do not re-add media without checking that it loads, plays and reports a duration
 in the target browser. A source that fails to decode must be removed, not shipped
 with a mismatched `type` attribute.
 
-No media files are committed. If you fork this project for a public deployment,
-host your own openly licensed media or your own uploads. Do not add commercial or
-copyrighted video files to the repository.
+Catalog playback media is remote. Two CC0 Flower test fixtures are committed
+under `qa/fixtures`: `flower.mp4` and `flower.webm` from MDN's same
+`media/cc0-videos/` collection. They make upload/import and player tests
+independent of external media availability; they are not additional catalog
+entries. See [the fixture source notes](qa/fixtures/README.md).
+If you fork this project for a public deployment, host your own openly licensed
+media or your own uploads. Do not add commercial or unlicensed video files.
 
 ## Thumbnails
 
