@@ -45,10 +45,14 @@ export function UploadPage() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [progress, setProgress] = useState(0);
   const timer = useRef<number | null>(null);
+  const completionTimer = useRef<number | null>(null);
+  const progressValue = useRef(0);
+  const running = useRef(false);
 
   useEffect(
     () => () => {
       if (timer.current !== null) window.clearInterval(timer.current);
+      if (completionTimer.current !== null) window.clearTimeout(completionTimer.current);
     },
     [],
   );
@@ -72,6 +76,7 @@ export function UploadPage() {
   const suggestedTags = suggestedTagsFor(category);
 
   const acceptFile = (candidate: File | null) => {
+    if (running.current) return;
     if (!candidate) return;
     const problems = validateVideoFile(candidate);
     setFileErrors(problems);
@@ -91,28 +96,35 @@ export function UploadPage() {
 
   const startUpload = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (running.current) return;
     const metadataErrors = validateMetadata({ title, description, category, tags });
     setErrors(metadataErrors);
     const missingFile = !file;
     if (missingFile) setFileErrors(['Choose a video file before uploading.']);
     if (!file || Object.keys(metadataErrors).length > 0) return;
 
+    running.current = true;
+    progressValue.current = 0;
     if (timer.current !== null) window.clearInterval(timer.current);
     setPhase('uploading');
     setProgress(0);
 
     timer.current = window.setInterval(() => {
-      setProgress((current) => {
-        const next = current + 6 + Math.random() * 7;
-        if (next < 100) return next;
+        // Timer side effects must stay outside state updaters: React may replay
+        // an updater, which used to schedule two drafts from a single upload.
+        const next = progressValue.current + 6 + Math.random() * 7;
+        progressValue.current = Math.min(100, next);
+        setProgress(progressValue.current);
+        if (next < 100) return;
         if (timer.current !== null) {
           window.clearInterval(timer.current);
           timer.current = null;
         }
         setPhase('processing');
-        window.setTimeout(() => {
+        completionTimer.current = window.setTimeout(() => {
+          completionTimer.current = null;
           const draft: Video = {
-            id: `local-${Date.now()}`,
+            id: `local-${crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`,
             title: title.trim(),
             description: description.trim() || 'No description was provided.',
             channelId: 'me',
@@ -132,8 +144,6 @@ export function UploadPage() {
           );
           navigate(`/watch/${draft.id}`);
         }, 900);
-        return 100;
-      });
     }, 150);
   };
 

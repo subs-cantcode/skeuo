@@ -1,8 +1,82 @@
 # Mobile title/metadata overlap investigation
 
-Status: **open, not reproduced in emulation**. No application CSS or component
-fix is claimed. Acceptance requires reproducing the reported failure and then
-checking the resulting preview on the reporter's actual iPhone.
+Status: **candidate rail containment and duplicate-upload fixes implemented;
+actual iPhone acceptance pending**. The thumbnail-over-text symptom is reported
+on the device but has not been reproduced in this Windows WebKit build. The
+duplicate-upload and long-local-filename overflow defects were reproduced.
+
+## Follow-up: signed-in local video rails
+
+The reported location is `More From: Nabus`, for the local clip titled
+`just flexing my abs hehehe :)`. This is the signed-in Upload path (`me` channel),
+distinct from the My Videos library (`library` channel). The previous fixture
+suite did not exercise actual file input, upload completion, or captured image
+Blobs. `qa/local-rail.e2e.ts` now does so with an openly licensed fixture file,
+the exact reported title, a long title, and an unbroken title.
+
+Changes:
+
+- Compact cards and Related rows use a nonshrinking thumbnail link whose width,
+  maximum width and flex basis all equal the existing responsive thumbnail
+  token. The inner image fills this link; overflowing media cannot cover the
+  independently flexible text body. Text remains in normal block flow with
+  automatic heights and wrapping. Existing 80px mobile / 96px desktop thumbnail
+  widths, 8px gaps, fonts and colors are preserved.
+- Upload completion previously scheduled a timeout inside `setProgress`'s
+  updater. React Strict Mode can replay that updater; a real-file reproduction
+  produced four stored drafts from three uploads. Completion now runs outside
+  the updater, submission has a synchronous guard, timers are cancelled on
+  unmount, and ids use UUIDs with a fallback. This reproduces a development-mode
+  duplicate cause; it does not establish that Strict Mode caused the screenshot
+  in the production-built preview.
+- Related and More From additionally collapse local entries sharing an actual
+  Blob source and exclude aliases of the current clip. They do not collapse
+  distinct files just because titles match, or demo clips sharing sample URLs.
+  No stored user videos are deleted.
+- The real import test found a long source filename's metadata `dd` extending
+  to x=630.53 in a 390px WebKit viewport. Constraining that flex child and allowing
+  unbroken strings to wrap removes this independently reproduced overflow.
+
+The real-file suite covers 320, 360, 375, 390, 414, 430 and 1440px widths in
+Chromium and WebKit. It waits for rail images to decode and measures image,
+thumbnail, text body, heading and every metadata box. It checks uniqueness,
+current-video exclusion, separation and page overflow. Baseline and candidate
+captures are under `qa/text-layout-artifacts/{before,after}/<engine>/local-<width>`.
+The baseline capture is served from a separate checkout at `b0122ce`. Normal
+test runs start their own server and refuse to reuse an existing server.
+
+Chromium tests the full real-file import, decoding, poster capture and IndexedDB
+pipeline. Windows WebKit cannot decode this H.264 fixture or persist Blobs;
+its file input and import UI run with explicitly annotated probe/poster/storage
+substitutes, using a real decoded thumbnail Blob. This does not verify iPhone
+media decoding or storage. The target symptom still needs the reporter's actual
+iPhone test; passing tests is not final acceptance.
+
+Representative WebKit 390px real-file measurements:
+
+| Measurement | Baseline | Candidate |
+| --- | ---: | ---: |
+| Draft records after 3 uploads | 5 (replayed completion) | 3 |
+| Imported-file page scroll width | 631px | 390px |
+| More From thumbnail right edge | 100px | 100px |
+| More From heading/metadata left edge | 108px | 108px |
+| Thumbnail/text gap | 8px | 8px |
+
+The unchanged rail measurements explicitly mean that this engine did not
+reproduce the device's thumbnail overlap before the containment change. The
+layout change is a candidate for on-device verification, not a claimed
+reproduction of that exact Safari failure. Desktop measurements retain a
+96px thumbnail and an 8px gap.
+
+Current verification: typecheck passed, all 74 unit/component tests passed,
+production build passed, and all 94 Chromium/WebKit tests passed. On this
+Windows host the runner stalled while cleaning up its Vite child process after
+all cases completed; stopping that verified test-owned server allowed the
+command to finish with exit code 0. No application process was stopped.
+
+The original investigation below records the earlier negative reproduction.
+
+---
 
 Baseline: `686f1a8ccb1e1bc36dbdbe0e151f3839049ff76c` on `preview/v0.2.0`.
 

@@ -76,6 +76,20 @@ describe('relatedVideos', () => {
 });
 
 describe('moreFromChannel', () => {
+  it('hides a replayed local upload with a different id, including the current source', () => {
+    const current = video({ id: 'current', localDraft: true, src: 'blob:current' });
+    const list = [current, { ...current, id: 'current-copy' },
+      video({ id: 'other', localDraft: true, src: 'blob:other' }),
+      video({ id: 'other-copy', localDraft: true, src: 'blob:other' })];
+    expect(moreFromChannel(channel('backlot'), list, 5, current.id).map(v => v.id)).toEqual(['other']);
+    expect(relatedVideos(current, list).map(v => v.id)).toEqual(['other']);
+  });
+
+  it('keeps distinct files with the same title and demos sharing a playback source', () => {
+    const list = [video({ id: 'a', local: true, src: 'blob:a' }), video({ id: 'b', local: true, src: 'blob:b' }),
+      video({ id: 'demo-a', demo: true, src: 'sample.mp4' }), video({ id: 'demo-b', demo: true, src: 'sample.mp4' })];
+    expect(moreFromChannel(channel('backlot'), list)).toHaveLength(4);
+  });
   it('excludes the video being watched', () => {
     const result = moreFromChannel(channel('backlot'), [
       video({ id: 'current' }),

@@ -616,14 +616,14 @@ export function WatchPage() {
               const entryChannel = getChannel(entry.channelId);
               return (
                 <li key={entry.id} className="related-list__item">
-                  <Link to={`/watch/${entry.id}`} aria-label={entry.title}>
+                  <Link className="related-list__thumb-link" to={`/watch/${entry.id}`} aria-label={entry.title}>
                     <Thumbnail
                       video={entry}
                       tint={channelTint(entryChannel)}
                       size="compact"
                     />
                   </Link>
-                  <div>
+                  <div className="related-list__body">
                     <h3 className="related-list__title">
                       <Link to={`/watch/${entry.id}`}>{entry.title}</Link>
                     </h3>

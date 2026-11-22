@@ -18,6 +18,26 @@ export function dedupeVideosById(videos: Video[]): Video[] {
   return unique;
 }
 
+/** Older uploads could create multiple ids pointing at the very same local
+ * object URL. Collapse those in rails without deleting stored videos or
+ * mistaking demo videos (which intentionally share sample URLs) for duplicates. */
+function railVideos(videos: Video[], current?: Video): Video[] {
+  const localSource = (video: Video) =>
+    (video.local || video.localDraft) && video.src.startsWith('blob:')
+      ? `${video.channelId}:${video.src}`
+      : undefined;
+  const seen = new Set<string>();
+  const currentSource = current && localSource(current);
+  return dedupeVideosById(videos).filter(video => {
+    if (video.id === current?.id) return false;
+    const source = localSource(video);
+    if (!source) return true;
+    if (source === currentSource || seen.has(source)) return false;
+    seen.add(source);
+    return true;
+  });
+}
+
 /**
  * Deterministic, explainable related-video ordering: same channel, then same
  * category, then shared tags, then view count. No personalisation data is used.
@@ -29,8 +49,7 @@ export function relatedVideos(
   limit = 10,
 ): Video[] {
   const tags = new Set(current.tags.map((tag) => tag.toLowerCase()));
-  return dedupeVideosById(videos)
-    .filter((video) => video.id !== current.id)
+  return railVideos(videos, current)
     .map((video) => {
       const sharedTags = video.tags.filter((tag) => tags.has(tag.toLowerCase())).length;
       const score =
@@ -55,7 +74,7 @@ export function moreFromChannel(
   currentId?: string,
 ): Video[] {
   return sortVideos(
-    dedupeVideosById(videos).filter(
+    railVideos(videos, videos.find(video => video.id === currentId)).filter(
       (video) => video.channelId === channel.id && video.id !== currentId,
     ),
     'newest',

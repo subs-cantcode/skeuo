@@ -705,13 +705,30 @@ button {
 }
 
 .video-card--compact {
-  display: grid;
-  grid-template-columns: var(--thumb-compact) minmax(0, 1fr);
+  display: flex;
   gap: 8px;
-  align-items: start;
+  align-items: flex-start;
 }
 
-.video-card--compact .video-card__body {
+.video-card--compact > .video-card__thumb-link,
+.related-list__item > .related-list__thumb-link {
+  /* The link owns the media column. Intrinsic image dimensions must never
+     enlarge it into the independently sized text column (notably in Safari). */
+  flex: 0 0 var(--thumb-compact);
+  width: var(--thumb-compact);
+  min-width: 0;
+  max-width: var(--thumb-compact);
+  overflow: hidden;
+}
+
+.video-card--compact .thumb,
+.related-list__item .thumb {
+  width: 100%;
+}
+
+.video-card--compact .video-card__body,
+.related-list__body {
+  flex: 1 1 0%;
   min-width: 0;
 }
 
@@ -1288,6 +1305,12 @@ button {
   font-weight: normal;
 }
 
+.description__meta dd {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
 .tag-list {
   display: flex;
   gap: 8px;
@@ -1490,8 +1513,8 @@ button {
 }
 
 .related-list__item {
-  display: grid;
-  grid-template-columns: var(--thumb-compact) minmax(0, 1fr);
+  display: flex;
+  align-items: flex-start;
   gap: 8px;
   padding: 6px 0;
   border-bottom: 1px dotted var(--border);
