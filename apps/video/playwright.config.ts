@@ -9,6 +9,10 @@ export default defineConfig({
   testDir: './qa',
   testMatch: '**/*.e2e.ts',
   fullyParallel: false,
+  projects: [
+    { name: 'chromium', use: { browserName: 'chromium' } },
+    { name: 'webkit', use: { browserName: 'webkit' } },
+  ],
   reporter: [['list']],
   use: {
     baseURL: 'http://127.0.0.1:5180',

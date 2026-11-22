@@ -34,4 +34,6 @@ apps/video/qa/screenshots/
 apps/video/qa/screenshots-after/
 apps/video/qa/final/
 apps/video/qa/mobile/
+apps/video/qa/text-layout-artifacts/
+apps/video/debug.log
 apps/video/qa/audit*.json
