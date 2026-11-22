@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { SignInPrompt } from '../components/SignInPrompt';
+import { suggestedTagsFor } from '../lib/categories';
 import { thumbnailDataUri } from '../lib/thumbnails';
 import { usePageTitle } from '../lib/usePageTitle';
 import {
@@ -67,6 +68,8 @@ export function UploadPage() {
   }
 
   const seed = 1000 + (file ? Math.floor(file.size % 900) : 0);
+  // Suggestions only: tags stay optional and are never added automatically.
+  const suggestedTags = suggestedTagsFor(category);
 
   const acceptFile = (candidate: File | null) => {
     if (!candidate) return;
@@ -325,6 +328,9 @@ export function UploadPage() {
                 />
                 <p className="field__hint" id="upload-tags-hint">
                   Comma separated, up to {MAX_TAGS}. Tags help search, nothing else.
+                  {suggestedTags.length > 0 ? (
+                    <> Suggested for {category}: {suggestedTags.join(', ')}. All optional.</>
+                  ) : null}
                 </p>
                 {errors.tags ? (
                   <p className="field__error" id="upload-tags-error" role="alert">

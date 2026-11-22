@@ -4,11 +4,12 @@ export const CATEGORIES = [
   'Education',
   'Entertainment',
   'Film & Animation',
+  'Fitness & Health',
   'Gaming',
   'How to & Style',
   'Music',
   'News & Politics',
-  'Nonprofits & Activism',
+  'Non-profit & Activism',
   'People & Blogs',
   'Pets & Animals',
   'Science & Technology',
@@ -51,6 +52,11 @@ export interface Video {
    * exists. When absent, the generated SVG artwork from `thumbSeed` is used.
    */
   thumbnail?: string;
+  /**
+   * Explanation shown when a preview frame could not be captured and the
+   * generated artwork is standing in for it.
+   */
+  thumbnailNote?: string;
   /** True when the item is a local (frontend-only) draft. */
   localDraft?: boolean;
   /** True for a video imported into this browser's own library (IndexedDB). */

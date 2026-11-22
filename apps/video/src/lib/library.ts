@@ -65,6 +65,8 @@ export interface LibraryMeta {
   height: number;
   importedAt: string;
   thumbSeed: number;
+  /** Why no preview frame was captured, when capture failed. */
+  posterNote?: string;
 }
 
 /** A metadata row plus the bytes it points at. */
@@ -472,6 +474,54 @@ export async function probeMediaFile(file: Blob): Promise<MediaInfo> {
   }
 }
 
+export type PosterFailure = 'decode' | 'canvas' | 'empty';
+
+export interface PosterResult {
+  poster: Blob | null;
+  failure: PosterFailure | null;
+}
+
+/** Shown on the card and the watch page when a frame could not be captured. */
+export const POSTER_FAILURE_NOTE: Record<PosterFailure, string> = {
+  decode:
+    'This browser could not decode a frame from the file, so the generic artwork is shown instead. Playback is unaffected.',
+  canvas:
+    'The browser would not let the frame be copied to a canvas, so the generic artwork is shown instead. Playback is unaffected.',
+  empty:
+    'The captured frame was empty, so the generic artwork is shown instead. Playback is unaffected.',
+};
+
+/**
+ * Give the decoder a frame to draw. iOS Safari will not hand pixels to
+ * `drawImage` for a video that has never played, even after `loadeddata`.
+ * Muted inline playback is allowed without a user gesture, so this is safe.
+ */
+async function primeFrame(video: HTMLVideoElement): Promise<void> {
+  const play = video.play();
+  if (!play || typeof play.then !== 'function') return;
+  try {
+    await Promise.race([
+      play,
+      new Promise<void>((resolve) => window.setTimeout(resolve, 2000)),
+    ]);
+  } catch {
+    // Autoplay refused: seeking below still produces a frame in most browsers.
+    return;
+  }
+  await new Promise<void>((resolve) => {
+    const withCallback = video as HTMLVideoElement & {
+      requestVideoFrameCallback?: (callback: () => void) => number;
+    };
+    if (typeof withCallback.requestVideoFrameCallback === 'function') {
+      withCallback.requestVideoFrameCallback(() => resolve());
+      window.setTimeout(resolve, 500);
+      return;
+    }
+    window.setTimeout(resolve, 120);
+  });
+  video.pause();
+}
+
 function canvasToBlob(canvas: HTMLCanvasElement, type: string): Promise<Blob | null> {
   return new Promise((resolve) => {
     try {
@@ -483,52 +533,89 @@ function canvasToBlob(canvas: HTMLCanvasElement, type: string): Promise<Blob | n
 }
 
 /**
- * Grab one frame as a 640×360 poster. Returns `null` when the browser refuses to
- * hand over pixels (a protected or undecodable stream); callers then fall back to
- * the generated SVG artwork, so a card never shows a broken image.
+ * Grab one frame as a 640×360 poster.
+ *
+ * The video is mounted in the document while it works: Safari (desktop and
+ * iOS) will not always decode a frame for a detached element, which is the
+ * most likely reason an iPhone import ends up with the generated artwork.
+ * Every failure is reported so the interface can explain the fallback instead
+ * of silently showing different art.
  */
-export async function capturePoster(file: Blob, durationSec: number): Promise<Blob | null> {
+export async function capturePoster(file: Blob, durationSec: number): Promise<PosterResult> {
   const url = URL.createObjectURL(file);
   const video = document.createElement('video');
   video.preload = 'auto';
   video.muted = true;
   video.playsInline = true;
+  video.setAttribute('playsinline', '');
+  video.setAttribute('webkit-playsinline', '');
+
+  const holder = document.createElement('div');
+  holder.setAttribute('aria-hidden', 'true');
+  holder.style.cssText =
+    'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;pointer-events:none;';
+  holder.appendChild(video);
+  document.body.appendChild(holder);
+
   try {
     const ready = mediaEvent(video, 'loadeddata', PROBE_TIMEOUT_MS);
     video.src = url;
-    await ready;
+    video.load();
+    try {
+      await ready;
+    } catch {
+      return { poster: null, failure: 'decode' };
+    }
+
+    await primeFrame(video);
 
     const target = pickPosterTime(durationSec);
     if (target > 0) {
-      const seeked = mediaEvent(video, 'seeked', PROBE_TIMEOUT_MS);
-      video.currentTime = target;
-      await seeked;
+      try {
+        const seeked = mediaEvent(video, 'seeked', PROBE_TIMEOUT_MS);
+        video.currentTime = target;
+        await seeked;
+      } catch {
+        // Keep the frame already decoded rather than losing the poster.
+      }
+    }
+
+    if (!video.videoWidth || !video.videoHeight) {
+      return { poster: null, failure: 'decode' };
     }
 
     const canvas = document.createElement('canvas');
     canvas.width = POSTER_WIDTH;
     canvas.height = POSTER_HEIGHT;
     const context = canvas.getContext('2d');
-    if (!context) return null;
+    if (!context) return { poster: null, failure: 'canvas' };
 
     const rect = coverRect(video.videoWidth, video.videoHeight, POSTER_WIDTH, POSTER_HEIGHT);
-    if (rect.sw <= 0 || rect.sh <= 0) return null;
-    context.drawImage(
-      video,
-      rect.sx,
-      rect.sy,
-      rect.sw,
-      rect.sh,
-      0,
-      0,
-      POSTER_WIDTH,
-      POSTER_HEIGHT,
-    );
+    if (rect.sw <= 0 || rect.sh <= 0) return { poster: null, failure: 'empty' };
 
-    return (await canvasToBlob(canvas, 'image/webp')) ?? (await canvasToBlob(canvas, 'image/jpeg'));
+    try {
+      context.drawImage(
+        video,
+        rect.sx,
+        rect.sy,
+        rect.sw,
+        rect.sh,
+        0,
+        0,
+        POSTER_WIDTH,
+        POSTER_HEIGHT,
+      );
+    } catch {
+      return { poster: null, failure: 'canvas' };
+    }
+
+    const poster =
+      (await canvasToBlob(canvas, 'image/webp')) ?? (await canvasToBlob(canvas, 'image/jpeg'));
+    return poster ? { poster, failure: null } : { poster: null, failure: 'canvas' };
   } catch {
-    return null;
+    return { poster: null, failure: 'decode' };
   } finally {
+    holder.remove();
     releaseMedia(video, url);
   }
 }
@@ -557,7 +644,7 @@ export async function importLibraryFile(
   const info = await probeMediaFile(file);
 
   onStage('poster');
-  const poster = await capturePoster(file, info.durationSec);
+  const { poster, failure } = await capturePoster(file, info.durationSec);
 
   onStage('saving');
   const record: LibraryRecord = {
@@ -572,6 +659,7 @@ export async function importLibraryFile(
     height: info.height,
     importedAt: new Date().toISOString(),
     thumbSeed: 2000 + (file.size % 900),
+    posterNote: failure ? POSTER_FAILURE_NOTE[failure] : undefined,
     file,
     poster,
   };
@@ -599,5 +687,6 @@ export function libraryEntryToVideo(entry: LibraryEntry): Video {
     height: entry.height,
     sizeBytes: entry.sizeBytes,
     fileName: entry.fileName,
+    thumbnailNote: entry.posterNote,
   };
 }

@@ -91,7 +91,9 @@ export function WatchPage() {
       : Date.parse(a.createdAt) - Date.parse(b.createdAt),
   );
   const related = relatedVideos(video, videos, 12);
-  const moreFrom = channel ? moreFromChannel(channel, videos, 5) : [];
+  // The video being watched is already on the page, so it is never repeated in
+  // the rail beside it.
+  const moreFrom = channel ? moreFromChannel(channel, videos, 5, video.id) : [];
   const playlistIndex = playlist ? playlist.videoIds.indexOf(video.id) : -1;
   const playlistVideos = playlist ? videosInPlaylist(playlist.id) : [];
   const nextInPlaylist =
@@ -149,6 +151,12 @@ export function WatchPage() {
             <strong>Local — Only you.</strong> This video was imported from this computer
             into the browser's local library. It is never uploaded to Skeuo or anywhere
             else, and it is visible only in this browser profile.
+          </p>
+        ) : null}
+
+        {video.local && !video.thumbnail && video.thumbnailNote ? (
+          <p className="watch-note">
+            <strong>No preview frame.</strong> {video.thumbnailNote}
           </p>
         ) : null}
 

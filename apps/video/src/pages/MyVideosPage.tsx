@@ -279,6 +279,9 @@ export function MyVideosPage() {
                     {entry.width}×{entry.height} · {formatDuration(entry.durationSec)} ·{' '}
                     {formatBytes(entry.sizeBytes)} · added {relativeTime(entry.importedAt)}
                   </p>
+                  {entry.posterNote ? (
+                    <p className="meta library-card__note">{entry.posterNote}</p>
+                  ) : null}
 
                   {editingId === entry.id ? (
                     <form

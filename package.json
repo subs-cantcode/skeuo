@@ -10,7 +10,8 @@
     "build": "npm run build --workspace=apps/video",
     "preview": "npm run preview --workspace=apps/video",
     "typecheck": "npm run typecheck --workspace=apps/video",
-    "test": "npm run test --workspace=apps/video"
+    "test": "npm run test --workspace=apps/video",
+    "test:responsive": "npm run test:responsive --workspace=apps/video"
   },
   "workspaces": [
     "apps/*"

@@ -7,6 +7,7 @@ import {
   libraryEntryToVideo,
   libraryFileProblems,
   pickPosterTime,
+  POSTER_FAILURE_NOTE,
   storageFailureMessage,
   titleFromFileName,
   UNKNOWN_STORAGE,
@@ -151,5 +152,28 @@ describe('libraryEntryToVideo', () => {
     expect(video.width).toBe(1280);
     expect(video.channelId).toBe('library');
     expect(video.demo).toBeUndefined();
+    expect(video.thumbnailNote).toBeUndefined();
+  });
+
+  it('explains a missing preview frame instead of failing silently', () => {
+    const video = libraryEntryToVideo({
+      id: 'local-2',
+      title: 'iPhone clip',
+      description: '',
+      fileName: 'IMG_2043.MOV',
+      mimeType: 'video/quicktime',
+      sizeBytes: 2048,
+      durationSec: 12,
+      width: 1920,
+      height: 1080,
+      importedAt: '2026-11-21T10:00:00.000Z',
+      thumbSeed: 2001,
+      src: 'blob:clip',
+      posterNote: POSTER_FAILURE_NOTE.decode,
+    });
+
+    expect(video.thumbnail).toBeUndefined();
+    expect(video.thumbnailNote).toMatch(/could not decode a frame/i);
+    expect(video.thumbnailNote).toMatch(/Playback is unaffected/i);
   });
 });

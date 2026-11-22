@@ -3,6 +3,7 @@ import { EmptyState } from '../components/EmptyState';
 import { Pagination } from '../components/Pagination';
 import { VideoCard } from '../components/VideoCard';
 import { plural } from '../lib/format';
+import { normalizeCategory } from '../lib/categories';
 import { parsePage } from '../lib/pagination';
 import { searchVideos, SORT_LABELS, type SortKey } from '../lib/search';
 import { usePageTitle } from '../lib/usePageTitle';
@@ -21,7 +22,9 @@ export function SearchPage() {
   const sort: SortKey = SORTS.includes(requestedSort as SortKey)
     ? (requestedSort as SortKey)
     : 'relevance';
-  const category = params.get('category') ?? 'All';
+  // A refinement carried in an old link may use a superseded spelling.
+  const requestedCategory = params.get('category');
+  const category = requestedCategory ? normalizeCategory(requestedCategory) : 'All';
   const page = parsePage(params.get('page'));
 
   usePageTitle(q ? `Search: ${q}` : 'Search');

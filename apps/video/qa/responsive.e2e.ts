@@ -42,6 +42,8 @@ interface LayoutReport {
   videoRatio: number | null;
   badThumbs: string[];
   thumbOverText: string[];
+  duplicateRailIds: string[];
+  currentInRail: boolean;
 }
 
 async function measure(page: Page): Promise<LayoutReport> {
@@ -115,6 +117,24 @@ async function measure(page: Page): Promise<LayoutReport> {
       })
       .map(label);
 
+    // The rail must show each video once, and never the one being watched.
+    // One href per card: a related row links both its thumbnail and its title.
+    const railHrefsIn = (selector: string) =>
+      [...(document.querySelector(selector)?.children ?? [])].map(
+        (card) => card.querySelector('a[href^="/watch/"]')?.getAttribute('href') ?? '',
+      );
+    const duplicateRailIds: string[] = [];
+    const currentInRail =
+      railHrefsIn('.compact-list').includes(window.location.pathname) ||
+      railHrefsIn('.related-list').includes(window.location.pathname);
+    for (const selector of ['.compact-list', '.related-list']) {
+      const seen = new Set<string>();
+      for (const href of railHrefsIn(selector)) {
+        if (seen.has(href)) duplicateRailIds.push(`${selector} ${href}`);
+        seen.add(href);
+      }
+    }
+
     return {
       innerWidth: vw,
       scrollWidth: document.documentElement.scrollWidth,
@@ -123,9 +143,29 @@ async function measure(page: Page): Promise<LayoutReport> {
       videoRatio,
       badThumbs: [...new Set(badThumbs)],
       thumbOverText: [...new Set(thumbOverText)],
+      duplicateRailIds: [...new Set(duplicateRailIds)],
+      currentInRail,
     };
   });
 }
+
+test('category labels are corrected and the new category resolves', async ({ page }) => {
+  await page.goto('/results?q=repair');
+  const options = await page.locator('select option').allTextContents();
+
+  expect(options).toContain('How to & Style');
+  expect(options).toContain('Non-profit & Activism');
+  expect(options).toContain('Fitness & Health');
+  expect(options).not.toContain('Howto & Style');
+  expect(options).not.toContain('Nonprofits & Activism');
+
+  await page.goto('/videos/Fitness%20%26%20Health');
+  await expect(page.locator('h1').first()).toContainText('Fitness & Health');
+
+  // A link written with the old spelling still resolves instead of 404ing.
+  await page.goto('/videos/Howto%20%26%20Style');
+  await expect(page.locator('h1').first()).toContainText('How to & Style');
+});
 
 for (const viewport of viewports) {
   test.describe(`${viewport.width}x${viewport.height}`, () => {
@@ -143,6 +183,8 @@ for (const viewport of viewports) {
         expect(report.overlapping, 'no overlapping controls').toEqual([]);
         expect(report.badThumbs, 'thumbnails keep 16:9 and stay inside the page').toEqual([]);
         expect(report.thumbOverText, 'compact thumbnails stay inside their column').toEqual([]);
+        expect(report.duplicateRailIds, 'rail lists each video once').toEqual([]);
+        expect(report.currentInRail, 'rail excludes the video being watched').toBe(false);
 
         if (report.videoRatio !== null) {
           expect(Math.abs(report.videoRatio - 16 / 9)).toBeLessThan(0.02);

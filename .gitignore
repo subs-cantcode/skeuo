@@ -33,4 +33,5 @@ apps/video/playwright-report/
 apps/video/qa/screenshots/
 apps/video/qa/screenshots-after/
 apps/video/qa/final/
+apps/video/qa/mobile/
 apps/video/qa/audit*.json

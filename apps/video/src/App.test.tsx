@@ -95,6 +95,91 @@ describe('navigation', () => {
     expect(screen.getByText(/Local storage is not available/i)).toBeInTheDocument();
   });
 
+  it('never repeats the video being watched in its own rail', () => {
+    const { container } = renderAt('/watch/v-harbour');
+    // One href per card: a related row links its thumbnail and its title.
+    const hrefsIn = (selector: string) =>
+      [...(container.querySelector(selector)?.children ?? [])].map(
+        (card) => card.querySelector('a[href^="/watch/"]')?.getAttribute('href') ?? '',
+      );
+
+    const moreFrom = hrefsIn('.compact-list');
+    const related = hrefsIn('.related-list');
+
+    expect(moreFrom.length).toBeGreaterThan(0);
+    expect(related.length).toBeGreaterThan(0);
+    // A video may appear in both lists, but never twice in the same one, and
+    // never in the rail while it is the one playing.
+    for (const list of [moreFrom, related]) {
+      expect(new Set(list).size).toBe(list.length);
+      expect(list).not.toContain('/watch/v-harbour');
+    }
+  });
+
+  it('replaces Subscribe with a label on your own channel', () => {
+    window.localStorage.setItem(
+      'skeuo.video.state.v1',
+      JSON.stringify({ profile: { name: 'Ada Lovelace', handle: 'ada' } }),
+    );
+    const { container } = renderAt('/channel/me');
+
+    // The header and footer also link "My channel", so check the control itself.
+    expect(container.querySelector('.button--own')?.textContent).toBe('My channel');
+    expect(screen.queryByRole('button', { name: /subscribe/i })).toBeNull();
+  });
+
+  it('keeps a normal Subscribe control on someone else’s channel', () => {
+    window.localStorage.setItem(
+      'skeuo.video.state.v1',
+      JSON.stringify({ profile: { name: 'Ada Lovelace', handle: 'ada' } }),
+    );
+    renderAt('/channel/backlot');
+
+    expect(screen.getByRole('button', { name: /^Subscribe$/i })).toBeInTheDocument();
+  });
+
+  it('offers the corrected category labels in the refinement select', () => {
+    const { container } = renderAt('/results?q=repair');
+    const options = [...container.querySelectorAll('select option')].map(
+      (option) => option.textContent,
+    );
+
+    expect(options).toContain('How to & Style');
+    expect(options).toContain('Non-profit & Activism');
+    expect(options).toContain('Fitness & Health');
+    expect(options).not.toContain('Howto & Style');
+    expect(options).not.toContain('Nonprofits & Activism');
+  });
+
+  it('normalises an old category spelling in a stored draft', () => {
+    window.localStorage.setItem(
+      'skeuo.video.state.v1',
+      JSON.stringify({
+        drafts: [
+          {
+            id: 'local-old',
+            title: 'Old draft',
+            description: '',
+            channelId: 'me',
+            category: 'Howto & Style',
+            tags: [],
+            durationSec: 30,
+            views: 0,
+            uploadedAt: '2026-01-01T00:00:00.000Z',
+            src: '',
+            thumbSeed: 1,
+          },
+        ],
+      }),
+    );
+    const { container } = renderAt('/watch/local-old');
+    const values = [...container.querySelectorAll('.description__meta dd')]
+      .map((node) => node.textContent)
+      .join('|');
+
+    expect(values).toContain('How to & Style');
+  });
+
   it('falls back to a not-found page for unknown routes', () => {
     renderAt('/no-such-page');
     expect(

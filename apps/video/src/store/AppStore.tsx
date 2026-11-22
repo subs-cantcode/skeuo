@@ -14,6 +14,8 @@ import { VIDEOS } from '../data/videos';
 import type { Channel, Comment, Playlist, Toast, Video, Vote } from '../types';
 import { loadJson, saveJson } from './persistence';
 import { LIBRARY_CHANNEL_ID, libraryEntryToVideo } from '../lib/library';
+import { dedupeVideosById } from '../lib/related';
+import { normalizeCategory } from '../lib/categories';
 import { useLibrary, type LibraryApi } from './useLibrary';
 
 export interface Profile {
@@ -78,9 +80,13 @@ function readState(): PersistedState {
     playlists: Array.isArray(stored.playlists) ? stored.playlists : [],
     // Object URLs die with the tab; drop them so the watch page can explain
     // that the local file is no longer attached instead of showing a dead player.
+    // A draft's category may have been saved under an older spelling. Normalise
+    // it on read rather than rewriting the stored record, so nothing is lost if
+    // the user goes back to an earlier build.
     drafts: Array.isArray(stored.drafts)
       ? stored.drafts.map((draft: Video) => ({
           ...draft,
+          category: normalizeCategory(String(draft.category ?? '')) as Video['category'],
           src: draft.src.startsWith('blob:') ? '' : draft.src,
         }))
       : [],
@@ -92,6 +98,8 @@ interface StoreValue extends PersistedState {
   channels: Channel[];
   library: LibraryApi;
   ownChannel: Channel | null;
+  /** True for the profile's own channel and for this browser's library channel. */
+  isOwnChannel: (channelId: string) => boolean;
   getChannel: (id: string) => Channel | undefined;
   getVideo: (id: string) => Video | undefined;
   commentsFor: (videoId: string) => Comment[];
@@ -167,8 +175,16 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   }, [ownChannel, libraryVideos.length]);
 
   const videos = useMemo(
-    () => [...state.drafts, ...libraryVideos, ...VIDEOS],
+    // Drafts, the library and the catalog are concatenated here, so dedupe by id:
+    // every list in the app reads from this array.
+    () => dedupeVideosById([...state.drafts, ...libraryVideos, ...VIDEOS]),
     [state.drafts, libraryVideos],
+  );
+
+  const isOwnChannel = useCallback(
+    (channelId: string) =>
+      channelId === LIBRARY_CHANNEL_ID || (ownChannel !== null && channelId === ownChannel.id),
+    [ownChannel],
   );
 
   const getChannel = useCallback(
@@ -202,17 +218,23 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     setState((current) => ({ ...current, profile: null }));
   }, []);
 
-  const toggleSubscribe = useCallback((channelId: string) => {
-    setState((current) => {
-      const subscribed = current.subscriptions.includes(channelId);
-      return {
-        ...current,
-        subscriptions: subscribed
-          ? current.subscriptions.filter((id) => id !== channelId)
-          : [...current.subscriptions, channelId],
-      };
-    });
-  }, []);
+  const toggleSubscribe = useCallback(
+    (channelId: string) => {
+      // Nobody subscribes to their own channel: the button is replaced by a
+      // label, and this guard keeps the stored list clean too.
+      if (channelId === LOCAL_CHANNEL_ID || channelId === LIBRARY_CHANNEL_ID) return;
+      setState((current) => {
+        const subscribed = current.subscriptions.includes(channelId);
+        return {
+          ...current,
+          subscriptions: subscribed
+            ? current.subscriptions.filter((id) => id !== channelId)
+            : [...current.subscriptions, channelId],
+        };
+      });
+    },
+    [],
+  );
 
   const setVote = useCallback((videoId: string, vote: Vote) => {
     setState((current) => {
@@ -359,7 +381,11 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   );
 
   const addDraft = useCallback((video: Video) => {
-    setState((current) => ({ ...current, drafts: [video, ...current.drafts] }));
+    const normalized: Video = {
+      ...video,
+      category: normalizeCategory(video.category) as Video['category'],
+    };
+    setState((current) => ({ ...current, drafts: [normalized, ...current.drafts] }));
   }, []);
 
   // Plain object: the provider only renders when state or toasts change, so a
@@ -370,6 +396,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     channels,
     library,
     ownChannel,
+    isOwnChannel,
     getChannel,
     getVideo,
     commentsFor,

@@ -8,6 +8,7 @@ import { paginate, parsePage } from '../lib/pagination';
 import { sortVideos, type VideoSort } from '../lib/sort';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useStore } from '../store/AppStore';
+import { normalizeCategory } from '../lib/categories';
 import { CATEGORIES, type Category } from '../types';
 import { NotFoundPage } from './NotFoundPage';
 
@@ -23,7 +24,9 @@ export function CategoryPage() {
   const { videos } = useStore();
 
   // React Router already decodes parameters.
-  const category = raw ?? '';
+  // Old links and stored drafts may use a superseded spelling; normalise before
+  // deciding whether the category exists.
+  const category = normalizeCategory(raw ?? '');
   const isKnown = (CATEGORIES as readonly string[]).includes(category);
   usePageTitle(isKnown ? category : 'Category not found');
 
