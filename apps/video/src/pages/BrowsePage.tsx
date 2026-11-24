@@ -14,7 +14,7 @@ const SORTS: Array<{ key: Extract<VideoSort, 'newest' | 'views'>; label: string 
   { key: 'newest', label: 'Recently added' },
 ];
 
-/** `/videos` and `/categories`: the era's category-first browsing surface. */
+/** `/videos`: the era's category-first browsing surface. */
 export function BrowsePage() {
   usePageTitle('Browse videos');
   const { videos } = useStore();

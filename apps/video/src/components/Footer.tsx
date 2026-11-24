@@ -18,7 +18,7 @@ export function Footer() {
                 <Link to="/">Home</Link>
               </li>
               <li>
-                <Link to="/categories">Categories</Link>
+                <Link to="/videos">Videos</Link>
               </li>
               <li>
                 <Link to="/channels">Channels</Link>

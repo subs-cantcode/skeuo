@@ -6,7 +6,6 @@ const LINKS = [
   { to: '/my-videos', label: 'My Videos' },
   { to: '/subscriptions', label: 'Subscriptions' },
   { to: '/channels', label: 'Channels' },
-  { to: '/categories', label: 'Categories' },
   { to: '/playlists', label: 'Playlists' },
 ];
 

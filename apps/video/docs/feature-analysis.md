@@ -25,10 +25,10 @@ phones the rail moves below the main column.
 - **Observed:** two rows — utility (locale, Sign Up, QuickList, Help, Sign In)
   and primary (Home Videos Shows Channels Community + Upload).
 - **Decided:** one utility row (brand, search, account links) and one primary
-  nav row with Home / Videos / Subscriptions / Channels / Categories / Upload.
+  nav row with Home / Videos / My Videos / Subscriptions / Channels / Playlists + Upload.
   `QuickList` is replaced by `Playlists`, because that is the feature this app
-  actually has and it matches the era's "queue" idea. Category browsing is a
-  dropdown-style page rather than a nested menu.
+  actually has and it matches the era's "queue" idea. Category browsing lives
+  within Videos; legacy `/categories` URLs redirect there.
 - Search lives in the header on every page, as observed. It is a real form
   that navigates to `/results`.
 

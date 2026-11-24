@@ -54,7 +54,7 @@ src/
   pages/
     HomePage.tsx           Watching Now, Featured, Recent, rails
     SearchPage.tsx         Results + refinements
-    BrowsePage.tsx         /videos and /categories
+    BrowsePage.tsx         /videos (category index and browsing)
     CategoryPage.tsx       /videos/:category with sort tabs
     WatchPage.tsx          Player, byline, actions, description,
                            playlist adder, comments, related rail
@@ -146,7 +146,8 @@ because none exists.
 |-------|------|
 | `/` | Homepage (`?page=`) |
 | `/results` | Search (`?q=&sort=&category=&page=`) |
-| `/videos`, `/categories` | Browse (category index + recent) |
+| `/videos` | Browse (category index + recent) |
+| `/categories`, `/categories/*` | Replace-history redirects to the corresponding `/videos` URL, preserving query and fragment |
 | `/videos/:category` | Category listing (`?sort=&page=`) |
 | `/watch/:id` | Watch page (`?list=` for a playlist queue) |
 | `/channel/:id` | Channel (`?tab=`) |

@@ -33,6 +33,9 @@ test('classic controls play, pause, seek, mute and adjust volume on real media',
   await seek.focus();
   await seek.press('Home');
   await expect.poll(() => video.evaluate(v => (v as HTMLVideoElement).currentTime)).toBeLessThan(0.1);
+  // currentTime changes before decoding finishes. Let the first seek settle
+  // before issuing another; otherwise WebKit may restore its previous frame.
+  await expect.poll(() => video.evaluate(v => (v as HTMLVideoElement).seeking)).toBe(false);
   await seek.press('ArrowRight');
   await expect.poll(() => video.evaluate(v => (v as HTMLVideoElement).currentTime)).toBeGreaterThan(0);
   await expect(seek).toHaveAttribute('aria-valuetext', /of 0:0/);

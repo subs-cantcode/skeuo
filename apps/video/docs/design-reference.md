@@ -62,7 +62,7 @@ than as a modern app.
 ┌────────────────────────────────────────────────────────────┐
 │ utility bar: wordmark · search · upload · account          │ 48px
 ├────────────────────────────────────────────────────────────┤
-│ nav bar: Home Videos Subscriptions Channels Categories     │ 28px
+│ nav bar: Home Videos My Videos Subscriptions Channels      │ 28px
 ├────────────────────────────────────────────────────────────┤
 │ container 970px                                            │
 │  ┌──────────────────────────────┐  ┌─────────────────────┐ │
@@ -93,7 +93,7 @@ than as a modern app.
 ### Navigation
 - Light-gray bar, 13px bold-ish links, 1px separators. Current section marked
   by darker text plus a 2px bottom border under the label — not a filled pill.
-- Category dropdown-like link points to `/categories`.
+- Category browsing lives inside `/videos`; no separate Categories navigation.
 
 ### Video card
 - 16:9 generated SVG thumbnail with 1px border; duration chip bottom-right

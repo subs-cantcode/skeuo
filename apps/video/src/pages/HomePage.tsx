@@ -124,7 +124,7 @@ export function HomePage() {
         </div>
 
         <aside className="home-rail" aria-label="More to browse">
-          <SidebarBox title="Most Popular" actionLabel="browse" actionTo="/categories">
+          <SidebarBox title="Most Popular" actionLabel="browse" actionTo="/videos">
             <ul className="popular-list">
               {popularByCategory.map(({ category, top }) => (
                 <li key={category} className="popular-list__item">

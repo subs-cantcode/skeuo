@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { BrowsePage } from './pages/BrowsePage';
 import { CategoryPage } from './pages/CategoryPage';
@@ -13,6 +13,12 @@ import { SignInPage } from './pages/SignInPage';
 import { SubscriptionsPage } from './pages/SubscriptionsPage';
 import { UploadPage } from './pages/UploadPage';
 import { WatchPage } from './pages/WatchPage';
+
+/** Keep old bookmarks, refinements and anchors while using one browse route. */
+function CategoriesRedirect() {
+  const { pathname, search, hash } = useLocation();
+  return <Navigate replace to={{ pathname: pathname.replace(/^\/categories(?=\/|$)/i, '/videos'), search, hash }} />;
+}
 
 /** Route table, exported separately so tests can mount it in a MemoryRouter. */
 export function AppRoutes() {
@@ -31,7 +37,7 @@ export function AppRoutes() {
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/videos" element={<BrowsePage />} />
         <Route path="/videos/:category" element={<CategoryPage />} />
-        <Route path="/categories" element={<BrowsePage />} />
+        <Route path="/categories/*" element={<CategoriesRedirect />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Layout>

@@ -25,6 +25,8 @@ const viewports = [
 
 const routes = [
   { path: '/', name: 'home' },
+  { path: '/videos', name: 'videos' },
+  { path: '/videos/Music', name: 'category' },
   { path: '/watch/v-harbour', name: 'watch' },
   { path: '/results?q=repair', name: 'search' },
   { path: '/my-videos', name: 'my-videos' },
@@ -168,6 +170,47 @@ test('category labels are corrected and the new category resolves', async ({ pag
   await expect(page.locator('h1').first()).toContainText('How to & Style');
 });
 
+test('legacy category URLs preserve refinements, fragments and category paths', async ({ page }) => {
+  await page.goto('/categories?sort=newest&page=2#category-index');
+  await expect(page).toHaveURL('/videos?sort=newest&page=2#category-index');
+  await expect(page.getByRole('heading', { name: 'Browse videos', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Recently added', exact: true }).first()).toHaveAttribute('aria-current', 'true');
+  await expect(page.getByRole('navigation', { name: 'Pagination' }).locator('[aria-current="page"]')).toHaveText('2');
+  await page.goto('/categories/Howto%20%26%20Style?sort=oldest&page=1');
+  await expect(page).toHaveURL('/videos/Howto%20%26%20Style?sort=oldest&page=1');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('How to & Style');
+  await expect(page.getByRole('link', { name: 'Oldest', exact: true })).toHaveAttribute('aria-current', 'true');
+});
+
+test('Videos is the single canonical browse navigation and categories remain selectable', async ({ page }) => {
+  await page.goto('/videos');
+  const nav = page.getByRole('navigation', { name: 'Primary' });
+  await expect(nav.getByRole('link', { name: 'Videos', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(nav.getByRole('link', { name: 'Videos', exact: true })).toHaveCount(1);
+  await expect(nav.getByRole('link', { name: 'Categories', exact: true })).toHaveCount(0);
+  await expect(page.locator('a[href^="/categories"]')).toHaveCount(0);
+  await page.locator('.category-table').getByRole('link', { name: 'Music', exact: true }).click();
+  await expect(page).toHaveURL('/videos/Music');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Music');
+  await expect(nav.getByRole('link', { name: 'Videos', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
+  await page.goto('/results?q=repair&category=How+to+%26+Style&sort=newest');
+  await expect(page.locator('#category-filter')).toHaveValue('How to & Style');
+  await expect(page.locator('.results-count')).toContainText('How to & Style');
+});
+
+test('a category redirect replaces history instead of trapping Back', async ({ page }) => {
+  await page.goto('/channels');
+  await page.evaluate(() => {
+    history.pushState(null, '', '/categories?sort=newest');
+    dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await expect(page).toHaveURL('/videos?sort=newest');
+  await page.goBack();
+  await expect(page).toHaveURL('/channels');
+  await expect(page.getByRole('heading', { level: 1, name: 'Channels', exact: true })).toBeVisible();
+});
+
 for (const viewport of viewports) {
   test.describe(`${viewport.width}x${viewport.height}`, () => {
     test.use({ viewport });
@@ -175,6 +218,7 @@ for (const viewport of viewports) {
     for (const route of routes) {
       test(`${route.name} fits the viewport`, async ({ page }) => {
         await page.goto(route.path);
+        await expect(page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Videos', exact: true })).toBeVisible();
         const report = await measure(page);
 
         expect(report.scrollWidth, 'no page-level horizontal scroll').toBeLessThanOrEqual(

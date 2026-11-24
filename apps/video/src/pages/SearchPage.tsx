@@ -124,7 +124,7 @@ export function SearchPage() {
                 relevance, newest, oldest and most viewed.
               </p>
               <p>
-                Or <Link to="/categories">browse by category</Link> instead.
+                Or <Link to="/videos">browse by category</Link> instead.
               </p>
             </EmptyState>
           ) : result.total === 0 ? (
@@ -136,7 +136,7 @@ export function SearchPage() {
                 <Link to={refineHref({ category: undefined })}>search all categories</Link>.
               </p>
               <p>
-                <Link to="/categories">Browse categories</Link>
+                <Link to="/videos">Browse categories</Link>
               </p>
             </EmptyState>
           ) : (

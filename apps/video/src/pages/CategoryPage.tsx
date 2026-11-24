@@ -56,7 +56,7 @@ export function CategoryPage() {
     <>
       <div className="breadcrumb">
         <Link to="/">Home</Link> <span aria-hidden="true">›</span>{' '}
-        <Link to="/categories">Categories</Link> <span aria-hidden="true">›</span>{' '}
+        <Link to="/videos">Videos</Link> <span aria-hidden="true">›</span>{' '}
         {category}
       </div>
       <h1 className="page-title">{category}</h1>
@@ -69,7 +69,7 @@ export function CategoryPage() {
       {paged.items.length === 0 ? (
         <EmptyState title="Nothing in this category yet">
           <p>
-            No videos have been added here. <Link to="/categories">Try another category</Link>.
+            No videos have been added here. <Link to="/videos">Try another category</Link>.
           </p>
         </EmptyState>
       ) : (
