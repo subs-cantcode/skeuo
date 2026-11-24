@@ -157,6 +157,9 @@ because none exists.
 | `/upload` | Upload (simulated) |
 | `/my-videos` | Personal library (import, edit, delete) |
 | `/signin` | Local profile (`?next=`, `?mode=register`) |
+| `/about` | Project, demonstration catalog and local-library overview |
+| `/privacy` | Browser storage, deletion and external request disclosures |
+| `/terms` | Preview use, media rights and software license summary |
 | `*` | Not found |
 
 Every list keeps its state in the URL, so results are shareable and browser

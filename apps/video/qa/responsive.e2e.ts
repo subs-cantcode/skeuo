@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 /**
  * Responsive regression checks.
  *
- * These run in Chromium against the real stylesheet, because jsdom cannot
+ * These run in Chromium, Firefox and WebKit against the real stylesheet, because jsdom cannot
  * measure layout. Every assertion is one of the release requirements:
  * no page-level horizontal scrolling, no controls pushed off-screen, video and
  * thumbnails keeping their aspect ratio, and no overlapping controls.
@@ -33,6 +33,9 @@ const routes = [
   { path: '/channel/backlot', name: 'channel' },
   { path: '/playlists', name: 'playlists' },
   { path: '/signin', name: 'signin' },
+  { path: '/about', name: 'about' },
+  { path: '/privacy', name: 'privacy' },
+  { path: '/terms', name: 'terms' },
   { path: '/no-such-route', name: 'not-found' },
 ];
 

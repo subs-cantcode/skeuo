@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { AboutPage } from './pages/AboutPage';
 import { BrowsePage } from './pages/BrowsePage';
 import { CategoryPage } from './pages/CategoryPage';
 import { ChannelPage } from './pages/ChannelPage';
@@ -8,9 +9,11 @@ import { HomePage } from './pages/HomePage';
 import { MyVideosPage } from './pages/MyVideosPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { PlaylistsPage } from './pages/PlaylistsPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { SearchPage } from './pages/SearchPage';
 import { SignInPage } from './pages/SignInPage';
 import { SubscriptionsPage } from './pages/SubscriptionsPage';
+import { TermsPage } from './pages/TermsPage';
 import { UploadPage } from './pages/UploadPage';
 import { WatchPage } from './pages/WatchPage';
 
@@ -38,6 +41,9 @@ export function AppRoutes() {
         <Route path="/videos" element={<BrowsePage />} />
         <Route path="/videos/:category" element={<CategoryPage />} />
         <Route path="/categories/*" element={<CategoriesRedirect />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Layout>
